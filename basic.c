@@ -10,10 +10,10 @@
 #ifdef WIN
 void gotoxy(int x,int y)
 {
-	COORD p;//¶¨Òå½á¹¹Ìå±äÁ¿p
-	HANDLE handle=GetStdHandle(STD_OUTPUT_HANDLE);//»ñÈ¡µ±Ç°º¯Êı¾ä±ú
-	p.X=x;p.Y=y;//½«¹â±êµÄÄ¿±êÒÆ¶¯Î»ÖÃ´«µİ¸ø½á¹¹Ìå
-	SetConsoleCursorPosition(handle,p);//ÒÆ¶¯¹â±ê
+	COORD p;//å®šä¹‰ç»“æ„ä½“å˜é‡p
+	HANDLE handle=GetStdHandle(STD_OUTPUT_HANDLE);//è·å–å½“å‰å‡½æ•°å¥æŸ„
+	p.X=x;p.Y=y;//å°†å…‰æ ‡çš„ç›®æ ‡ç§»åŠ¨ä½ç½®ä¼ é€’ç»™ç»“æ„ä½“
+	SetConsoleCursorPosition(handle,p);//ç§»åŠ¨å…‰æ ‡
 }
 
 void clrscr()
@@ -37,9 +37,9 @@ void clrscr()
 
 int main()
 {
-	printf("ÄãºÃ");
+	printf("ä½ å¥½");
     gotoxy(4,2);
-    printf("ºÜºÃ£¬¼ÓÓÍ£¡");
+    printf("å¾ˆå¥½ï¼ŒåŠ æ²¹ï¼");
     getch(); getch();
     clrscr();
     getch();
