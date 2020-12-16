@@ -1,10 +1,13 @@
-//#define WI
+#define WIN
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <conio.h>
 #include <math.h>
+#ifdef WIN
+#include <windows.h>
+#endif
 
 #include "base.h"
  
@@ -17,7 +20,7 @@
 #define PS 2    //玩家数量
 
 #define MT 100  //基础移动冷却时间，单位ms
-#define DT 10  //绘制延迟，单位ms
+#define DT 20  //绘制延迟，单位ms
 
 block *map[MX+2][MY+2];
 int flor[MX+2][MY+2];
@@ -93,29 +96,19 @@ void draw(player *p,int xx,int yy)
 	{
 		for (j=p->sy;j<=p->sy+10;j++)
 		{
-		    print(iflor[i][j]->c,iflor[i][j]->fc,flor[i][j]);
-		}
-		gotoxy(yy,xx+i-p->sx+2);
-	}
-	gotoxy(yy,xx+1);
-	for (i=p->sx;i<=p->sx+10;i++)
-	{
-		for (j=p->sy;j<=p->sy+10;j++)
-		{
-			if (map[i][j]->id<=1)
-			{
-				printf("\e[2C"); continue;
-			}
 		    if ((iflor[i][j]->id>1)&&(liv[i][j]->id>0))
 		        print(map[i][j]->c,map[i][j]->fc,7);
 		    else
-		        print(map[i][j]->c,map[i][j]->fc,flor[i][j]);
+			if (iflor[i][j]->id>1)
+		        print(iflor[i][j]->c,iflor[i][j]->fc,flor[i][j]);
+			else
+				print(map[i][j]->c,map[i][j]->fc,flor[i][j]);
 		}
 		gotoxy(yy,xx+i-p->sx+2);
 	}
 	printf("%s",p->tol->c);
 	printf("%d %d",inbufn,pn);
-	printf(" fps:%d",fps);
+	printf(" fps:%d      ",fps);
 }
 
 void maprefresh()
@@ -284,14 +277,16 @@ void controldbg()
 	if (keyp("d")&&(p[0].sy<MY-10)) p[0].sy+=1;
 }
 
+clock_t st=0;
+
 void control1(player *p)
 {
-/*
+
 	int z=0;  //???
-	if ((MT*CLOCKS_PER_SEC/1000)+p->mt<=clock())
+	if ((MT*CLOCKS_PER_SEC/1000)+st<=clock())
 	{
-		z=1; p->mt=clock();
-	}*/
+		z=1; st=clock();
+	}
 	if (keyp("w")) move(p,-1,0);
 	if (keyp("a")) move(p,0,-1);
 	if (keyp("s")) move(p,1,0);
@@ -310,7 +305,7 @@ void control1(player *p)
 	if (keyp("f")) attack(p,0,-1);
 	if (keyp("g")) attack(p,1,0);
 	if (keyp("h")) attack(p,0,1);
-	if (keyp("c")) spawn(2);
+	if (z&&keyp("c")) spawn(2);
 }
 
 void control2(player *p)
@@ -345,7 +340,7 @@ void gamescreen()
 			{
 				draw(&p[3],1,23);
 			}*/
-//			draw(&p[2],1,23);
+			draw(&p[2],1,23);
 	
 		}
 		getinput();
@@ -361,6 +356,9 @@ void gamescreen()
 
 void main()
 {
+#ifdef WIN
+	system("cls"); HideCursor(); modeset(60,30);
+#endif
 	srand((unsigned int)time(NULL));
 //	test();
 	stiinit(); stbinit(); stpinit(); mapload(); playerinit(); gamescreen();

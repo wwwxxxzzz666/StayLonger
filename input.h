@@ -1,6 +1,23 @@
 char inbuf[100];
 int inbufn;
 
+#ifdef WIN
+void getinput()
+{
+}
+
+void inputdbg()
+{
+}
+
+int keyp(char ss[])
+{
+	if (GetKeyState(ss[0]-32)<0) return 1;
+	return 0;
+}
+#endif
+
+#ifndef WIN
 void getinput()
 {
 	while (kbhit())
@@ -52,3 +69,4 @@ int keyp(char ss[])
 	}
 	return 1;
 }
+#endif
