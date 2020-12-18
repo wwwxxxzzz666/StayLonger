@@ -1,4 +1,4 @@
-#define WIN
+//#define WIN
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,19 +8,24 @@
 #ifdef WIN
 #include <windows.h>
 #endif
-
+ 
 #include "base.h"
  
 #include "test.h"
-
+ 
 #include "stdinit.h"
-
+ 
 #define MX 100
 #define MY 100
 #define PS 2    //玩家数量
-
+ 
 #define MT 100  //基础移动冷却时间，单位ms
-#define DT 20  //绘制延迟，单位ms
+#define ANT 10  //子弹等动态活动运动基础单位时间，单位ms
+#define DT 10  //绘制延迟，单位ms
+#define PT 10  //物理计算单位时间，单位ms
+
+#define MIU 0.3  //阻力常数
+#define EK 10
 
 block *map[MX+2][MY+2];
 int flor[MX+2][MY+2];
@@ -29,8 +34,8 @@ player *liv[MX+2][MY+2];
 player p[666];
 int pn;  //玩家和ai数量
 int fps,fpsf;
-clock_t fpst,dpst;
-
+clock_t fpst,dpst,ppst;
+ 
 void playerinit()
 {
 	int i;
@@ -46,21 +51,23 @@ void playerinit()
 		p[i].eqp=0;*/
 		p[i].at=p[i].mt=p[i].dt=0;
 		p[i].sx=p[i].sy=1;
+		p[i].vx=p[i].vy=0;
 		p[i].x=p[i].y=9+i;
 //		p[i].spd=1;
 	}
 }
-
+ 
 void spawn(int id)
 {
 	pn++;
 	p[pn]=stp[id];
 	p[pn].x=rand()%60+21;
 	p[pn].y=rand()%60+21;
+	p[pn].vx=p[pn].vy=0;
 	p[pn].at=p[pn].mt=p[pn].dt=0;
-	p[pn].sx=p[pn].sy=0;
+	p[pn].sx=p[pn].sy=1;
 }
-
+ 
 void mapload()
 {
 	int i,j;
@@ -82,9 +89,9 @@ void mapload()
 		liv[0][i]=liv[MX+1][i]=liv[i][0]=liv[i][MY+1]=&p[0];	
 	}
 }
-
+ 
 #include "input.h"
-
+ 
 void draw(player *p,int xx,int yy)
 {
 	if (p->id>2) return;
@@ -110,7 +117,7 @@ void draw(player *p,int xx,int yy)
 	printf("%d %d",inbufn,pn);
 	printf(" fps:%d      ",fps);
 }
-
+ 
 void maprefresh()
 {
 	int i,j,t;
@@ -143,31 +150,31 @@ void maprefresh()
 		if (((int)(p[i].y)-5>=1)&&((int)(p[i].y)+5<=MY)) p[i].sy=(int)(p[i].y)-5;
 	}
 }
-
+ 
 int sgnx(player *p1,player *p2)  //p2相对p1的x方位sgn
 {
 	if ((int)(p1->x)==(int)(p2->x)) return 0;
 	if ((int)(p1->x)>(int)(p2->x)) return -1;
 	return 1;
 }
-
+ 
 int sgny(player *p1,player *p2)  //p2相对p1的y方位sgn
 {
 	if ((int)(p1->y)==(int)(p2->y)) return 0;
 	if ((int)(p1->y)>(int)(p2->y)) return -1;
 	return 1;
 }
-
+ 
 int qdisx(player *p1,player *p2)  //切比雪夫x方位距离
 {
 	return abs((int)(p1->x)-(int)(p2->x));
 }
-
+ 
 int qdisy(player *p1,player *p2)  //切比雪夫y方位距离
 {
 	return abs((int)(p1->y)-(int)(p2->y));
 }
-
+ 
 int qdism(player *p1,player *p2)  //切比雪夫距离投影分离量最小值
 {
 	return min(qdisx(p1,p2),qdisy(p1,p2));
@@ -177,10 +184,46 @@ void move(player *p,int xx,int yy)
 {
 	if ((MT*CLOCKS_PER_SEC/1000)+p->mt>clock()) return;
 	p->mt=clock();
-	if (map[(int)(p->x+xx)][(int)(p->y+yy)]->csh==0) return;
-	p->x+=xx*p->spd; p->y+=yy*p->spd;
+	p->vx+=xx*p->spd; p->vy+=yy*p->spd;
 }
 
+void physics()
+{
+	int i;
+	for (i=1;i<=pn;i++)
+	{
+		if (p[i].id>2) continue;
+		player *pp;
+		pp=&p[i];
+		if ((liv[(int)(pp->x+pp->vx)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y+pp->vy)]->csh==0))
+		{
+			if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0)&&(liv[(int)(pp->x+pp->vx)][(int)(pp->y)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y)]->csh==0))
+			{
+				move(liv[(int)(pp->x)][(int)(pp->y+pp->vy)],0,pp->vy*EK);
+				move(liv[(int)(pp->x+pp->vx)][(int)(pp->y)],pp->vx*EK,0);
+				pp->vx*=-EK; pp->vy*=-EK;  //??
+			}
+			else
+			if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0))
+			{
+				move(liv[(int)(pp->x)][(int)(pp->y+pp->vy)],0,pp->vy*EK);
+				pp->vy*=-EK;
+			}
+			else
+			{
+				move(liv[(int)(pp->x+pp->vx)][(int)(pp->y)],pp->vx*EK,0);
+				pp->vx*=-EK;
+			}
+			pp->vx*=MIU; pp->vy*=MIU;
+		}
+		else
+		{
+			pp->x+=pp->vx; pp->y+=pp->vy;
+			pp->vx*=MIU; pp->vy*=MIU;
+		}
+	}
+}
+ 
 void attack(player *pp,int xx,int yy)
 {
 	if ((pp->tol->ft*CLOCKS_PER_SEC/1000)+pp->at>clock()) return;
@@ -198,7 +241,7 @@ void attack(player *pp,int xx,int yy)
 		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
 	}
 }
-
+ 
 void ai2(player *q)
 {
 	player *tar;
@@ -243,7 +286,7 @@ void ai2(player *q)
 	}
 	
 }
-
+ 
 void playerlogic()
 {
 	int i;
@@ -264,11 +307,13 @@ void playerlogic()
 				liv[(int)p[i].x][(int)p[i].y]->hp-=p[i].eqp;
 				p[i].hp=0;
 			}
+			if ((ANT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
+			p[i].mt=clock();
 			p[i].x+=p[i].spd*p[i].sx; p[i].y+=p[i].spd*p[i].sy;
 		}
 	}
 }
-
+ 
 void controldbg()
 {
 	if (keyp("w")&&(p[0].sx>1)) p[0].sx-=1;
@@ -276,12 +321,12 @@ void controldbg()
 	if (keyp("s")&&(p[0].sx<MX-10)) p[0].sx+=1;
 	if (keyp("d")&&(p[0].sy<MY-10)) p[0].sy+=1;
 }
-
+ 
 clock_t st=0;
-
+ 
 void control1(player *p)
 {
-
+ 
 	int z=0;  //???
 	if ((MT*CLOCKS_PER_SEC/1000)+st<=clock())
 	{
@@ -307,7 +352,7 @@ void control1(player *p)
 	if (keyp("h")) attack(p,0,1);
 	if (z&&keyp("c")) spawn(2);
 }
-
+ 
 void control2(player *p)
 {
 	if (keyp("i")) move(p,-1,0);
@@ -315,10 +360,10 @@ void control2(player *p)
 	if (keyp("k")) move(p,1,0);
 	if (keyp("l")) move(p,0,1);
 }
-
+ 
 void gamescreen()
 {
-	inbufn=0; dpst=fpst=clock(); fpsf=fps=0;
+	inbufn=0; ppst=dpst=fpst=clock(); fpsf=fps=0;
 	while (1)
 	{
 		if (fpst+1000*CLOCKS_PER_SEC/1000<=clock())
@@ -327,13 +372,20 @@ void gamescreen()
 			inbufn=0;
 		}
 		
+		if (ppst+PT*CLOCKS_PER_SEC/1000<=clock())
+		{
+			ppst=clock();
+			physics();
+		}
+		
+		playerlogic();
+			
+		maprefresh();
+		
 		if (dpst+DT*CLOCKS_PER_SEC/1000<=clock())
 		{
 			dpst=clock(); fpsf++;
 			
-			playerlogic();
-			
-			maprefresh();
 			
 			draw(&p[1],1,1);
 /*			if (pn>=3)
@@ -353,7 +405,7 @@ void gamescreen()
 		gotoxy(1,1);
 	}
 }
-
+ 
 void main()
 {
 #ifdef WIN

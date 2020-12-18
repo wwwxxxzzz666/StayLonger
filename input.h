@@ -1,22 +1,22 @@
 char inbuf[100];
 int inbufn;
-
+ 
 #ifdef WIN
 void getinput()
 {
 }
-
+ 
 void inputdbg()
 {
 }
-
+ 
 int keyp(char ss[])
 {
 	if (GetKeyState(ss[0]-32)<0) return 1;
 	return 0;
 }
 #endif
-
+ 
 #ifndef WIN
 void getinput()
 {
@@ -33,16 +33,16 @@ void getinput()
 	}
 	// rewind(stdin);
 }
-
+ 
 void inputdbg()
 {
 	int i;
 	for (i = 1; i <= inbufn; i++)
 		putchar(inbuf[i]);
 	puts("");
-
+ 
 }
-
+ 
 int keyp(char ss[])
 {
 	int i, j, l = strlen(ss);

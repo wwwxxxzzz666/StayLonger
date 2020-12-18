@@ -4,19 +4,19 @@ void wait(int ms)
 	endwait = clock() + ms * CLOCKS_PER_SEC / 1000;//CLOCKS_PER_SEC宏定义1000,标准时间差
 	while(clock()<endwait);
 }
-
+ 
 #ifndef WIN
 int max(int a,int b)
 {
 	return ((a>b)?a:b);
 }
-
+ 
 int min(int a,int b)
 {
 	return ((a<b)?a:b);
 }
 #endif
-
+ 
 #ifdef WIN
 /*void gotoxy(int x,int y)
 {
@@ -31,7 +31,7 @@ void clrscr()
 	system("cls");
 }
 */
-
+ 
 void HideCursor()
 {
 	CONSOLE_CURSOR_INFO cursor;    
@@ -40,7 +40,7 @@ void HideCursor()
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);    
 	SetConsoleCursorInfo(handle, &cursor);
 }
-
+ 
 void modeset(int w,int h) {
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	COORD size = {w, h};
@@ -50,17 +50,17 @@ void modeset(int w,int h) {
 	system("cls");
 	return;
 }
-
+ 
 void gotoxy(int x,int y)
 {
 	printf("\033[%d;%dH",y,x);
 }
-
+ 
 void clrscr()
 {
 	printf("\33[2J");
 }
-
+ 
 char *col[16]={
 "\033[m",         //NONE 0
 "\033[0;32;31m",  //RED 1
@@ -109,19 +109,19 @@ char *col[16]={
     #define LIGHT_GRAY "\033[0;37m"
      
     #define WHITE "\033[1;37m"
-
+ 
 void print(char *ss,int fc,int bc)
 {
 	printf("%s\e[4%dm%2s\e[0m",col[fc],bc,ss);
 }
-
+ 
 #else
 /*
 void gotoxy(int x,int y)
 {
 	printf("\033[%d;%dH",x,y);
 }
-
+ 
 void clrscr()
 {
 	printf("\33[2J");
@@ -175,10 +175,10 @@ char *col[16]={
     #define LIGHT_GRAY "\033[0;37m"
      
     #define WHITE "\033[1;37m"
-
+ 
 void print(char *ss,int fc,int bc)
 {
 	printf("%s\e[4%dm%2s\e[0m",col[fc],bc,ss);
 }
-
+ 
 #endif
