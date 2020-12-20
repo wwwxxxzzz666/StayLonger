@@ -1,4 +1,4 @@
-//#define WIN
+#define WIN
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,24 +8,24 @@
 #ifdef WIN
 #include <windows.h>
 #endif
- 
-#include "base.h"
- 
-#include "test.h"
- 
+
 #include "stdinit.h"
- 
+
+#include "base.h"
+
+#include "test.h"
+
 #define MX 100
 #define MY 100
 #define PS 2    //玩家数量
  
 #define MT 100  //基础移动冷却时间，单位ms
 #define ANT 10  //子弹等动态活动运动基础单位时间，单位ms
-#define DT 10  //绘制延迟，单位ms
+#define DT 1  //绘制延迟，单位ms
 #define PT 10  //物理计算单位时间，单位ms
 
-#define MIU 0.3  //阻力常数
-#define EK 10
+#define MIU 0.33  //阻力常数
+#define EK 1
 
 block *map[MX+2][MY+2];
 int flor[MX+2][MY+2];
@@ -92,32 +92,55 @@ void mapload()
  
 #include "input.h"
  
-void draw(player *p,int xx,int yy)
+void draw(player *q,int xx,int yy)
 {
-	if (p->id>2) return;
+	if (q->id>2) return;
 	int i,j,k,t;
 	gotoxy(yy,xx);
-	printf("HP:%d      ",p->hp);
+	if (q->hp==-1958) printf("很遗憾。你挂了！"); else printf("HP:%d      ",q->hp);
 	gotoxy(yy,xx+1);
-	for (i=p->sx;i<=p->sx+10;i++)
+	for (i=q->sx;i<=q->sx+10;i++)
 	{
-		for (j=p->sy;j<=p->sy+10;j++)
+		for (j=q->sy;j<=q->sy+10;j++)
 		{
-		    if ((iflor[i][j]->id>1)&&(liv[i][j]->id>0))
+			
+			if (liv[i][j]->id>0)
+			{
+				if (iflor[i][j]->id>1)
+					livprint(liv[i][j],7);
+				else
+					livprint(liv[i][j],flor[i][j]);
+			}
+			else
+			{
+				if (iflor[i][j]->id>1)
+		        	print(iflor[i][j]->c,iflor[i][j]->fc,flor[i][j]);
+				else
+					print(map[i][j]->c,map[i][j]->fc,flor[i][j]);
+			}
+
+/*		    if ((iflor[i][j]->id>1)&&(liv[i][j]->id>0))
 		        print(map[i][j]->c,map[i][j]->fc,7);
 		    else
 			if (iflor[i][j]->id>1)
 		        print(iflor[i][j]->c,iflor[i][j]->fc,flor[i][j]);
 			else
-				print(map[i][j]->c,map[i][j]->fc,flor[i][j]);
+				print(map[i][j]->c,map[i][j]->fc,flor[i][j]);*/
 		}
-		gotoxy(yy,xx+i-p->sx+2);
+		gotoxy(yy,xx+i-q->sx+2);
 	}
-	printf("%s",p->tol->c);
+	printf("%s",q->tol->c);
 	printf("%d %d",inbufn,pn);
-	printf(" fps:%d      ",fps);
+	printf(" fps:%d  %.2lf",fps,q->y);
 }
- 
+
+int ifoutmap(player *q)
+{
+	if (q->x<1) return 1;if (q->x>MX) return 1;
+	if (q->y<1) return 1;if (q->y>MY) return 1;
+	return 0;	
+}
+
 void maprefresh()
 {
 	int i,j,t;
@@ -180,11 +203,18 @@ int qdism(player *p1,player *p2)  //切比雪夫距离投影分离量最小值
 	return min(qdisx(p1,p2),qdisy(p1,p2));
 }
 
-void move(player *p,int xx,int yy)
+void movev(player *q,int xx,int yy)
 {
-	if ((MT*CLOCKS_PER_SEC/1000)+p->mt>clock()) return;
-	p->mt=clock();
-	p->vx+=xx*p->spd; p->vy+=yy*p->spd;
+	if ((MT*CLOCKS_PER_SEC/1000)+q->mt>clock()) return;
+	q->mt=clock();
+	q->vx+=xx; q->vy+=yy;
+}
+
+void move(player *q,int xx,int yy)
+{
+	if ((MT*CLOCKS_PER_SEC/1000)+q->mt>clock()) return;
+	q->mt=clock();
+	q->vx+=xx*q->spd; q->vy+=yy*q->spd;
 }
 
 void physics()
@@ -199,19 +229,19 @@ void physics()
 		{
 			if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0)&&(liv[(int)(pp->x+pp->vx)][(int)(pp->y)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y)]->csh==0))
 			{
-				move(liv[(int)(pp->x)][(int)(pp->y+pp->vy)],0,pp->vy*EK);
-				move(liv[(int)(pp->x+pp->vx)][(int)(pp->y)],pp->vx*EK,0);
+				liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=pp->vy*EK;
+				liv[(int)(pp->x+pp->vx)][(int)(pp->y)]->vx+=pp->vx*EK;
 				pp->vx*=-EK; pp->vy*=-EK;  //??
 			}
 			else
 			if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0))
 			{
-				move(liv[(int)(pp->x)][(int)(pp->y+pp->vy)],0,pp->vy*EK);
+				liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=pp->vy*EK;
 				pp->vy*=-EK;
 			}
 			else
 			{
-				move(liv[(int)(pp->x+pp->vx)][(int)(pp->y)],pp->vx*EK,0);
+				liv[(int)(pp->x+pp->vx)][(int)(pp->y)]->vx+=pp->vx*EK;
 				pp->vx*=-EK;
 			}
 			pp->vx*=MIU; pp->vy*=MIU;
@@ -237,7 +267,7 @@ void attack(player *pp,int xx,int yy)
 	if (pp->tol->id==1)  //小枪
 	{
 		pn++;
-		p[pn]=stp[3];p[pn].sx=xx;p[pn].sy=yy;p[pn].eqp+=pp->tol->dmg;
+		p[pn]=stp[21];p[pn].sx=xx;p[pn].sy=yy;p[pn].eqp+=pp->tol->dmg;
 		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
 	}
 }
@@ -245,8 +275,8 @@ void attack(player *pp,int xx,int yy)
 void ai2(player *q)
 {
 	player *tar;
-	tar=&p[1];  //??
-	int dmin=1<7;
+	tar=&p[0];  //??
+	int dmin=1<<7;
 	int i,j;
 	
 	for (i=1;i<=pn;i++)  //找目标
@@ -258,7 +288,9 @@ void ai2(player *q)
 			tar=&p[i];
 		}
 	}
-	
+
+	if (tar==&p[0]) return;
+
 	if (qdism(q,tar)==0)  //行为
 	{
 		attack(q,sgnx(q,tar),sgny(q,tar));
@@ -292,6 +324,10 @@ void playerlogic()
 	int i;
 	for (i=1;i<=pn;i++)
 	{
+		if ((p[i].hp<=0)&&(p[i].id==1))
+		{
+			p[i].hp=-1958; continue;
+		}
 		if (p[i].hp<=0)
 		{
 			p[i]=p[pn]; p[pn].id=404; pn--; continue;
@@ -300,12 +336,18 @@ void playerlogic()
 		{
 			ai2(&p[i]);
 		}
-		if (p[i].id==3)  //子弹
+		if (p[i].id==21)  //子弹
 		{
+			if (ifoutmap(&p[i]))
+			{
+				p[i].hp=0;
+				continue;
+			}
 			if (map[(int)p[i].x][(int)p[i].y]->csh==0)
 			{
 				liv[(int)p[i].x][(int)p[i].y]->hp-=p[i].eqp;
 				p[i].hp=0;
+				continue;
 			}
 			if ((ANT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
 			p[i].mt=clock();
@@ -324,41 +366,43 @@ void controldbg()
  
 clock_t st=0;
  
-void control1(player *p)
+void control1(player *q)
 {
- 
+	if (q->hp==-1958) return;
+
 	int z=0;  //???
 	if ((MT*CLOCKS_PER_SEC/1000)+st<=clock())
 	{
 		z=1; st=clock();
 	}
-	if (keyp("w")) move(p,-1,0);
-	if (keyp("a")) move(p,0,-1);
-	if (keyp("s")) move(p,1,0);
-	if (keyp("d")) move(p,0,1);
-	if (keyp("q")&&p->tol->id&&(iflor[(int)(p->x)][(int)(p->y)]->id==1))
+	if (keyp("w")) move(q,-1,0);
+	if (keyp("a")) move(q,0,-1);
+	if (keyp("s")) move(q,1,0);
+	if (keyp("d")) move(q,0,1);
+	if (keyp("q")&&q->tol->id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
 	{
-		iflor[(int)(p->x)][(int)(p->y)]=&stb[p->tol->id+70];
-		p->tol=&sti[0];
+		iflor[(int)(q->x)][(int)(q->y)]=&stb[q->tol->id+70];
+		q->tol=&sti[0];
 	}
-	if (keyp("e")&&(iflor[(int)(p->x)][(int)(p->y)]->id>70))
+	if (keyp("e")&&(q->tol->id==0)&&(iflor[(int)(q->x)][(int)(q->y)]->id>70))
 	{
-		p->tol=&sti[iflor[(int)(p->x)][(int)(p->y)]->id-70];
-		iflor[(int)(p->x)][(int)(p->y)]=&stb[1];
+		q->tol=&sti[iflor[(int)(q->x)][(int)(q->y)]->id-70];
+		iflor[(int)(q->x)][(int)(q->y)]=&stb[1];
 	}
-	if (keyp("t")) attack(p,-1,0);
-	if (keyp("f")) attack(p,0,-1);
-	if (keyp("g")) attack(p,1,0);
-	if (keyp("h")) attack(p,0,1);
+	if (keyp("t")) attack(q,-1,0);
+	if (keyp("f")) attack(q,0,-1);
+	if (keyp("g")) attack(q,1,0);
+	if (keyp("h")) attack(q,0,1);
 	if (z&&keyp("c")) spawn(2);
 }
  
-void control2(player *p)
+void control2(player *q)
 {
-	if (keyp("i")) move(p,-1,0);
-	if (keyp("j")) move(p,0,-1);
-	if (keyp("k")) move(p,1,0);
-	if (keyp("l")) move(p,0,1);
+	if (q->hp==-1958) return;
+	if (keyp("i")) move(q,-1,0);
+	if (keyp("j")) move(q,0,-1);
+	if (keyp("k")) move(q,1,0);
+	if (keyp("l")) move(q,0,1);
 }
  
 void gamescreen()
@@ -409,7 +453,7 @@ void gamescreen()
 void main()
 {
 #ifdef WIN
-	system("cls"); HideCursor(); modeset(60,30);
+	system("cls"); HideCursor();
 #endif
 	srand((unsigned int)time(NULL));
 //	test();

@@ -41,16 +41,6 @@ void HideCursor()
 	SetConsoleCursorInfo(handle, &cursor);
 }
  
-void modeset(int w,int h) {
-	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	COORD size = {w, h};
-	SetConsoleScreenBufferSize(hOut,size);
-	SMALL_RECT rc = {1,1, w, h};
-	SetConsoleWindowInfo(hOut,1,&rc);
-	system("cls");
-	return;
-}
- 
 void gotoxy(int x,int y)
 {
 	printf("\033[%d;%dH",y,x);
@@ -114,7 +104,19 @@ void print(char *ss,int fc,int bc)
 {
 	printf("%s\e[4%dm%2s\e[0m",col[fc],bc,ss);
 }
- 
+
+void livprint(player *q,int bc)
+{
+    if (q->hp>=stp[q->id].hp*0.5)
+        print(stb[q->id+20].c,15,bc);
+    else if (q->hp>=stp[q->id].hp*0.2)
+        print(stb[q->id+20].c,13,bc);
+    else if (q->hp>0)
+        print(stb[q->id+20].c,2,bc);
+    else
+        print(stb[q->id+20].c,7,bc);
+}
+
 #else
 /*
 void gotoxy(int x,int y)
@@ -180,5 +182,17 @@ void print(char *ss,int fc,int bc)
 {
 	printf("%s\e[4%dm%2s\e[0m",col[fc],bc,ss);
 }
- 
+
+void livprint(player *q,int bc)
+{
+    if (q->hp>=stp[q->id].hp*0.5)
+        print(stb[q->id+20].c,15,bc);
+    else if (q->hp>=stp[q->id].hp*0.2)
+        print(stb[q->id+20].c,13,bc);
+    else if (q->hp>0)
+        print(stb[q->id+20].c,2,bc);
+    else
+        print(stb[q->id+20].c,7,bc);
+}
+
 #endif

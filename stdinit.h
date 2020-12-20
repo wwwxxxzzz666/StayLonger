@@ -41,7 +41,8 @@ void stbinit()
 	strcpy(stb[2].c,"ロ");stb[2].fc=7;stb[2].csh=0; //墙
 	strcpy(stb[21].c,"デ");stb[21].fc=15;stb[21].csh=0; //人类
 	strcpy(stb[22].c,"バ");stb[22].fc=15;stb[22].csh=0; //敌人
-	strcpy(stb[23].c,"ヽ");stb[23].fc=15;stb[23].csh=1;  //子弹
+	strcpy(stb[41].c,"ヽ");stb[41].fc=15;stb[41].csh=1;  //子弹
+	strcpy(stb[42].c,"  ");stb[42].fc=15;stb[42].csh=1;  //剑气
 	strcpy(stb[71].c,"ヶ");stb[71].fc=13; //小枪
 }
  
@@ -63,14 +64,18 @@ void stpinit()
 	stp[1].hp=stp[1].fd=stp[1].wt=stp[1].og=1000;
 	stp[1].tol=&sti[0];
 	stp[1].eqp=0;
-	stp[1].spd=0.7;
+	stp[1].spd=0.333;
 	strcpy(stp[2].c,"敌人");
 	stp[2].hp=stp[2].fd=stp[2].wt=stp[2].og=100;
 	stp[2].tol=&sti[1];
 	stp[2].eqp=0;
-	stp[2].spd=0.6;
-	strcpy(stp[3].c,"子弹");
-	stp[3].hp=20;
-	stp[3].eqp=8;  //暂定伤害
-	stp[3].spd=0.2;
+	stp[2].spd=0.3;
+	strcpy(stp[21].c,"子弹");
+	stp[21].hp=20;
+	stp[21].eqp=8;  //暂定伤害
+	stp[21].spd=0.7;
+	strcpy(stp[22].c,"剑气");
+	stp[22].hp=1;
+	stp[22].eqp=5;  //暂定伤害
+	stp[22].spd=0;
 }
