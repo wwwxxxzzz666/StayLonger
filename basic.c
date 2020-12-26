@@ -17,24 +17,38 @@
 
 #define MX 100
 #define MY 100
+#define OBJMAX 6666  //地图对象数量上限
+#define VMAX 90  //速度分量上限
 #define PS 2    //玩家数量
+#define GAMETYPE  //游戏类型
  
 #define MT 100  //基础移动冷却时间，单位ms
-#define ANT 10  //子弹等动态活动运动基础单位时间，单位ms
+#define ANT 10  //子弹动态活动运动基础单位时间，单位ms
+#define BNT 300  //冲击波动态活动运动基础单位时间，单位ms
 #define DT 1  //绘制延迟，单位ms
 #define PT 10  //物理计算单位时间，单位ms
+#define OT 1000  //氧气判定单位时间，单位ms
 
-#define MIU 0.33  //阻力常数
-#define EK 1
+#define BUB 1.3  //子弹击退常数
+#define BLB 3.2  //冲击波击退常数
+#define PM 0.6  //物理引擎空间计算最小单位
+#define EK 1  //弹性碰撞系数
+
+#define MHP 1000  //玩家HP上限
+#define MOG 1000  //玩家OG上限
+#define OGDMG 10  //缺氧伤害
+#define RUNOG -100  //奔跑最低氧气值
+
+#define WEAKMSG  //弱消息提醒开关
 
 block *map[MX+2][MY+2];
 int flor[MX+2][MY+2];
 block *iflor[MX+2][MY+2];
 player *liv[MX+2][MY+2];
-player p[666];
+player p[OBJMAX];
 int pn;  //玩家和ai数量
 int fps,fpsf;
-clock_t fpst,dpst,ppst;
+clock_t fpst,dpst,ppst,opst;
  
 void playerinit()
 {
@@ -49,25 +63,38 @@ void playerinit()
 		p[i].hp=p[i].fd=p[i].wt=p[i].og=100;
 		p[i].tol=&sti[0];
 		p[i].eqp=0;*/
-		p[i].at=p[i].mt=p[i].dt=0;
+		p[i].at=p[i].mt=p[i].ot=0;
 		p[i].sx=p[i].sy=1;
 		p[i].vx=p[i].vy=0;
 		p[i].x=p[i].y=9+i;
+		p[i].qut=0;
+		p[i].own=&p[i];
 //		p[i].spd=1;
+		strcpy(p[i].msg[1],"~~");
+		strcpy(p[i].msg[2],"~~");
 	}
+	strcpy(p[1].c,"玩家1");	strcpy(p[2].c,"玩家2");
 }
  
-void spawn(int id)
+void spawn(int id,double xx,double yy)  
 {
 	pn++;
 	p[pn]=stp[id];
-	p[pn].x=rand()%60+21;
-	p[pn].y=rand()%60+21;
+	p[pn].x=xx;
+	p[pn].y=yy;
 	p[pn].vx=p[pn].vy=0;
-	p[pn].at=p[pn].mt=p[pn].dt=0;
+	p[pn].at=p[pn].mt=p[pn].ot=0;
 	p[pn].sx=p[pn].sy=1;
+	p[pn].qut=0;
+	p[pn].own=&p[pn];
 }
- 
+
+void addmsg(player *q,char *ss)
+{
+	strcpy(q->msg[2],q->msg[1]);
+	strcpy(q->msg[1],ss);
+}
+
 void mapload()
 {
 	int i,j;
@@ -82,6 +109,8 @@ void mapload()
 	    }
 	    
 	iflor[8][8]=iflor[7][8]=&stb[71];
+	iflor[9][10]=&stb[72];
+	iflor[7][10]=&stb[73];
 	
 	for (i=0;i<=MX+1;i++)
 	{
@@ -89,7 +118,7 @@ void mapload()
 		liv[0][i]=liv[MX+1][i]=liv[i][0]=liv[i][MY+1]=&p[0];	
 	}
 }
- 
+
 #include "input.h"
  
 void draw(player *q,int xx,int yy)
@@ -97,7 +126,10 @@ void draw(player *q,int xx,int yy)
 	if (q->id>2) return;
 	int i,j,k,t;
 	gotoxy(yy,xx);
-	if (q->hp==-1958) printf("很遗憾。你挂了！"); else printf("HP:%d      ",q->hp);
+	if (q->hp<=-1958)
+		printf("很遗憾。你挂了！");
+	else
+		printf("HP:%d OG:%d      ",q->hp,q->og);
 	gotoxy(yy,xx+1);
 	for (i=q->sx;i<=q->sx+10;i++)
 	{
@@ -118,27 +150,58 @@ void draw(player *q,int xx,int yy)
 				else
 					print(map[i][j]->c,map[i][j]->fc,flor[i][j]);
 			}
-
-/*		    if ((iflor[i][j]->id>1)&&(liv[i][j]->id>0))
-		        print(map[i][j]->c,map[i][j]->fc,7);
-		    else
-			if (iflor[i][j]->id>1)
-		        print(iflor[i][j]->c,iflor[i][j]->fc,flor[i][j]);
-			else
-				print(map[i][j]->c,map[i][j]->fc,flor[i][j]);*/
 		}
 		gotoxy(yy,xx+i-q->sx+2);
 	}
-	printf("%s",q->tol->c);
+	printf("%s %s ",q->c,q->tol->c);
+	if (iflor[(int)q->x][(int)q->y]->id==1)
+		print("空地",11,0);
+	else
+		print(sti[iflor[(int)q->x][(int)q->y]->id-70].c,11,0);
+	gotoxy(yy,xx+13);
+	print(q->msg[1],8,0);
+	printf("      ");
+	gotoxy(yy,xx+14);
+	print(q->msg[2],9,0);
+	printf("      ");
+	gotoxy(yy,xx+15);
 	printf("%d %d",inbufn,pn);
 	printf(" fps:%d  %.2lf",fps,q->y);
 }
 
 int ifoutmap(player *q)
 {
-	if (q->x<1) return 1;if (q->x>MX) return 1;
-	if (q->y<1) return 1;if (q->y>MY) return 1;
+	if (q->x<1) return 1;if (q->x>MX+1) return 1;
+	if (q->y<1) return 1;if (q->y>MY+1) return 1;
 	return 0;	
+}
+
+void backinmap(player *q)
+{
+	if (q->x+q->vx<1)
+	{
+		q->x=1; q->vx*=-EK;
+	}
+	if (q->x+q->vx>MX+1)
+	{
+		q->x=MX; q->vx*=-EK;
+	}
+	if (q->y+q->vy<1)
+	{
+		q->y=1; q->vy*=-EK;
+	}
+	if (q->y+q->vy>MY+1)
+	{
+		q->y=MY; q->vy*=-EK;
+	}
+}
+
+void vlimit(player *q)
+{
+	if ((q->id<=20)&&(q->vx>VMAX)) q->vx=VMAX;
+	if ((q->id<=20)&&(q->vx<-VMAX)) q->vx=-VMAX;
+	if ((q->id<=20)&&(q->vy>VMAX)) q->vy=VMAX;
+	if ((q->id<=20)&&(q->vy<-VMAX)) q->vy=-VMAX;
 }
 
 void maprefresh()
@@ -155,183 +218,216 @@ void maprefresh()
 	    }
 	for (i=1;i<=pn;i++)  //先刷新ai
 	{
-		if (p[i].id<=2) continue;
+		if (p[i].id<=20) continue;
 		if (map[(int)(p[i].x)][(int)(p[i].y)]->csh==0) continue;
 		map[(int)(p[i].x)][(int)(p[i].y)]=&stb[p[i].id+20];
 		liv[(int)(p[i].x)][(int)(p[i].y)]=&p[i];
 	}
 	for (i=1;i<=pn;i++)  //后刷新玩家
 	{
-		if (p[i].id>2) continue;
+		if (p[i].id>20) continue;
 		map[(int)(p[i].x)][(int)(p[i].y)]=&stb[p[i].id+20];
 		liv[(int)(p[i].x)][(int)(p[i].y)]=&p[i];
 	}
 	for (i=1;i<=pn;i++)
 	{
-		if (p[i].id>2) continue;
-		if (((int)(p[i].x)-5>=1)&&((int)(p[i].x)+5<=MX)) p[i].sx=(int)(p[i].x)-5;
-		if (((int)(p[i].y)-5>=1)&&((int)(p[i].y)+5<=MY)) p[i].sy=(int)(p[i].y)-5;
+		if (p[i].id>20) continue;
+		if (((int)(p[i].x)-5>=1)&&((int)(p[i].x)+5<=MX))
+			p[i].sx=(int)(p[i].x)-5;
+		else if ((int)(p[i].x)-5<1)
+			p[i].sx=1;
+		else p[i].sx=MX-10;
+		if (((int)(p[i].y)-5>=1)&&((int)(p[i].y)+5<=MY))
+			p[i].sy=(int)(p[i].y)-5;
+		else if ((int)(p[i].y)-5<1)
+			p[i].sy=1;
+		else p[i].sy=MY-10;
 	}
 }
- 
-int sgnx(player *p1,player *p2)  //p2相对p1的x方位sgn
-{
-	if ((int)(p1->x)==(int)(p2->x)) return 0;
-	if ((int)(p1->x)>(int)(p2->x)) return -1;
-	return 1;
-}
- 
-int sgny(player *p1,player *p2)  //p2相对p1的y方位sgn
-{
-	if ((int)(p1->y)==(int)(p2->y)) return 0;
-	if ((int)(p1->y)>(int)(p2->y)) return -1;
-	return 1;
-}
- 
-int qdisx(player *p1,player *p2)  //切比雪夫x方位距离
-{
-	return abs((int)(p1->x)-(int)(p2->x));
-}
- 
-int qdisy(player *p1,player *p2)  //切比雪夫y方位距离
-{
-	return abs((int)(p1->y)-(int)(p2->y));
-}
- 
-int qdism(player *p1,player *p2)  //切比雪夫距离投影分离量最小值
-{
-	return min(qdisx(p1,p2),qdisy(p1,p2));
-}
 
-void movev(player *q,int xx,int yy)
-{
-	if ((MT*CLOCKS_PER_SEC/1000)+q->mt>clock()) return;
-	q->mt=clock();
-	q->vx+=xx; q->vy+=yy;
-}
-
-void move(player *q,int xx,int yy)
-{
-	if ((MT*CLOCKS_PER_SEC/1000)+q->mt>clock()) return;
-	q->mt=clock();
-	q->vx+=xx*q->spd; q->vy+=yy*q->spd;
-}
+#include "gamecore.h"
 
 void physics()
 {
 	int i;
 	for (i=1;i<=pn;i++)
 	{
-		if (p[i].id>2) continue;
-		player *pp;
-		pp=&p[i];
-		if ((liv[(int)(pp->x+pp->vx)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y+pp->vy)]->csh==0))
+		if (p[i].id>20) continue;
+		int tt=1;
+		while ((p[i].vx/tt>PM)||(p[i].vy/tt>PM)) tt++;
+		int j;
+		p[i].vx/=tt; p[i].vy/=tt;
+		for (j=1;j<=tt;j++)
 		{
-			if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0)&&(liv[(int)(pp->x+pp->vx)][(int)(pp->y)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y)]->csh==0))
+			backinmap(&p[i]);
+			player *pp;
+			pp=&p[i];
+			if ((liv[(int)(pp->x+pp->vx)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y+pp->vy)]->csh==0))
 			{
-				liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=pp->vy*EK;
-				liv[(int)(pp->x+pp->vx)][(int)(pp->y)]->vx+=pp->vx*EK;
-				pp->vx*=-EK; pp->vy*=-EK;  //??
+
+				if ((p[i].id==4)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]!=&p[i]))  //手雷特判
+				{
+					if (!liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->id) continue;
+					if (!liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp)
+						liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->own=p[i].own;
+					liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp-=(int)(p[i].eqp*(getv(&p[i])/9.0));
+
+					#ifdef WEAKMSG
+					char ts[34];
+					strcpy(ts,"你打了");
+					strcat(ts,liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->c);
+					addmsg(p[i].own,ts);
+					strcpy(ts,p[i].own->c);
+					strcat(ts,"打了你");
+					addmsg(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)],ts);
+					#endif
+				}
+
+				if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0)&&(liv[(int)(pp->x+pp->vx)][(int)(pp->y)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y)]->csh==0))
+				{
+					liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=tt*pp->vy*EK;
+					liv[(int)(pp->x+pp->vx)][(int)(pp->y)]->vx+=tt*pp->vx*EK;
+					pp->vx*=-EK; pp->vy*=-EK;  //??
+				}
+				else
+				if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0))
+				{
+					liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=tt*pp->vy*EK;
+					pp->vy*=-EK;
+				}
+				else
+				{
+					liv[(int)(pp->x+pp->vx)][(int)(pp->y)]->vx+=tt*pp->vx*EK;
+					pp->vx*=-EK;
+				}
 			}
 			else
-			if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0))
 			{
-				liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=pp->vy*EK;
-				pp->vy*=-EK;
+				pp->x+=pp->vx; pp->y+=pp->vy;
 			}
-			else
+		}
+		p[i].vx*=tt; p[i].vy*=tt;
+		p[i].vx*=p[i].miu; p[i].vy*=p[i].miu;
+	}
+}
+
+void oxygen()  //氧气和其他生物事件判定
+{
+	int i;
+	for (i=1;i<=pn;i++)  //??
+	{
+		if (p[i].id==1)  //玩家
+		{
+			p[i].og+=15+rand()%11;
+			if (p[i].og>MOG) p[i].og=MOG;
+			if ((p[i].og<=0)&&(!p[i].qut))
 			{
-				liv[(int)(pp->x+pp->vx)][(int)(pp->y)]->vx+=pp->vx*EK;
-				pp->vx*=-EK;
+				char ts[34];
+				strcpy(ts,"你需要氧气！");
+				addmsg(&p[i],ts);
+				p[i].own=&p[i];
+				p[i].hp-=OGDMG;
 			}
-			pp->vx*=MIU; pp->vy*=MIU;
 		}
-		else
+		if (p[i].id==4)  //手雷
 		{
-			pp->x+=pp->vx; pp->y+=pp->vy;
-			pp->vx*=MIU; pp->vy*=MIU;
+			p[i].hp--;
 		}
 	}
 }
- 
-void attack(player *pp,int xx,int yy)
-{
-	if ((pp->tol->ft*CLOCKS_PER_SEC/1000)+pp->at>clock()) return;
-	if (((int)(pp->x)+xx<1)||((int)(pp->x)+xx>MX)) return;
-	if (((int)(pp->y)+yy<1)||((int)(pp->y)+yy>MY)) return;
-	pp->at=clock();
-	if (pp->tol->id==0)  //双手
-	{
-		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->hp-=pp->tol->dmg; //!!!
-	}
-	if (pp->tol->id==1)  //小枪
-	{
-		pn++;
-		p[pn]=stp[21];p[pn].sx=xx;p[pn].sy=yy;p[pn].eqp+=pp->tol->dmg;
-		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
-	}
-}
- 
-void ai2(player *q)
-{
-	player *tar;
-	tar=&p[0];  //??
-	int dmin=1<<7;
-	int i,j;
-	
-	for (i=1;i<=pn;i++)  //找目标
-	{
-		if ((q==&p[i])||(p[i].id>1)) continue;
-		if (qdism(q,&p[i])<dmin)
-		{
-			dmin=qdism(q,&p[i]);
-			tar=&p[i];
-		}
-	}
 
-	if (tar==&p[0]) return;
-
-	if (qdism(q,tar)==0)  //行为
-	{
-		attack(q,sgnx(q,tar),sgny(q,tar));
-		int t=rand()%3-1;
-		int tt=rand()%3-1;
-		if (qdisx(q,tar)==0)
-		{
-			move(q,t,sgny(q,tar)+tt);
-		}
-		else
-		{
-			move(q,sgnx(q,tar)+tt,t);
-		}
-	}
-	else
-	{
-		if (qdisx(q,tar)<=qdisy(q,tar))
-		{
-			move(q,sgnx(q,tar),0);
-		}
-		else
-		{
-			move(q,0,sgny(q,tar));
-		}
-	}
-	
-}
- 
 void playerlogic()
 {
 	int i;
 	for (i=1;i<=pn;i++)
 	{
-		if ((p[i].hp<=0)&&(p[i].id==1))
+		if (p[i].id<=20) backinmap(&p[i]);
+		vlimit(&p[i]);
+
+		if ((p[i].hp<=0)&&(p[i].id==1))  //玩家死亡
 		{
-			p[i].hp=-1958; continue;
+			p[i].hp=-1958;
+
+			if (!p[i].qut)
+			{
+				p[i].qut=1;
+				char ts[34];
+				strcpy(ts,p[i].own->c);
+				strcat(ts,"击杀了你！");
+				addmsg(&p[i],ts);
+				strcpy(ts,"你击杀了");
+				strcat(ts,p[i].c);
+				strcat(ts,"！");
+				addmsg(p[i].own,ts);
+				strcpy(ts,p[i].own->c);
+				strcat(ts,"击杀了");
+				strcat(ts,p[i].c);
+				strcat(ts,"！");
+				int j;
+				for (j=1;j<=pn;j++)
+					if ((p[j].id==1)&&(j!=i)&&(&p[j]!=p[i].own)) addmsg(&p[j],ts);
+			}
+
+			continue;
 		}
-		if (p[i].hp<=0)
+		if ((p[i].hp<=0)&&(p[i].id==4))  //手雷死亡
 		{
-			p[i]=p[pn]; p[pn].id=404; pn--; continue;
+			p[i].qut=1;
+			spawn(22,p[i].x-1,p[i].y);
+			p[pn].vx=-1; p[pn].vy=0;
+			spawn(22,p[i].x,p[i].y-1);
+			p[pn].vx=0; p[pn].vy=-1;
+			spawn(22,p[i].x+1,p[i].y);
+			p[pn].vx=1; p[pn].vy=0;
+			spawn(22,p[i].x,p[i].y+1);
+			p[pn].vx=0; p[pn].vy=1;
+
+			spawn(22,p[i].x-1,p[i].y-1);
+			p[pn].vx=-1; p[pn].vy=-1;
+			spawn(22,p[i].x-1,p[i].y+1);
+			p[pn].vx=-1; p[pn].vy=1;
+			spawn(22,p[i].x+1,p[i].y-1);
+			p[pn].vx=1; p[pn].vy=-1;
+			spawn(22,p[i].x+1,p[i].y+1);
+			p[pn].vx=1; p[pn].vy=1;
+			p[i]=p[pn]; p[pn].id=404; pn--;  //?
+
+#ifdef WEAKMSG
+				char ts[34];
+				strcpy(ts,"一颗手雷爆炸了");
+				int j;
+				for (j=1;j<=pn;j++)
+					if (p[j].id==1) addmsg(&p[j],ts);
+
+#endif
+
+			continue;
 		}
+		if (p[i].hp<=0)  //其他死亡
+		{
+
+			if ((p[i].id<=20)&&(!p[i].qut))
+			{
+				p[i].qut=1;
+				char ts[34];
+				strcpy(ts,p[i].own->c);
+				strcat(ts,"击杀了你！");
+				addmsg(&p[i],ts);
+				strcpy(ts,"你击杀了");
+				strcat(ts,p[i].c);
+				strcat(ts,"！");
+				addmsg(p[i].own,ts);
+			}
+
+			p[i]=p[pn]; p[pn].id=404; pn--;
+			continue;
+		}
+
+		if (p[i].id==1)  //玩家
+		{
+
+		}
+
 		if (p[i].id==2)  //敌人
 		{
 			ai2(&p[i]);
@@ -345,13 +441,98 @@ void playerlogic()
 			}
 			if (map[(int)p[i].x][(int)p[i].y]->csh==0)
 			{
-				liv[(int)p[i].x][(int)p[i].y]->hp-=p[i].eqp;
 				p[i].hp=0;
+				if (!liv[(int)p[i].x][(int)p[i].y]->id) continue;
+				if (!liv[(int)p[i].x][(int)p[i].y]->qut)
+					liv[(int)p[i].x][(int)p[i].y]->own=p[i].own;
+				liv[(int)p[i].x][(int)p[i].y]->hp-=p[i].eqp;
+				liv[(int)p[i].x][(int)p[i].y]->vy+=BUB*p[i].sy;
+				liv[(int)p[i].x][(int)p[i].y]->vx+=BUB*p[i].sx;
+
+#ifdef WEAKMSG
+				char ts[34];
+				strcpy(ts,"你打了");
+				strcat(ts,liv[(int)p[i].x][(int)p[i].y]->c);
+				addmsg(p[i].own,ts);
+				strcpy(ts,p[i].own->c);
+				strcat(ts,"打了你");
+				addmsg(liv[(int)p[i].x][(int)p[i].y],ts);
+#endif
+
 				continue;
 			}
 			if ((ANT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
 			p[i].mt=clock();
 			p[i].x+=p[i].spd*p[i].sx; p[i].y+=p[i].spd*p[i].sy;
+		}
+		if (p[i].id==4)  //手雷
+		{
+			if (ifoutmap(&p[i]))
+			{
+				p[i].hp=0;
+				continue;
+			}
+			continue;
+		}
+		if (p[i].id==22)  //冲击波???
+		{
+			if (ifoutmap(&p[i]))
+			{
+				p[i].hp=0;
+				continue;
+			}
+			if (map[(int)p[i].x][(int)p[i].y]->csh==0)
+			{
+				p[i].hp=0;
+				if (!liv[(int)p[i].x][(int)p[i].y]->id) continue;
+				if (!liv[(int)p[i].x][(int)p[i].y]->qut)
+					liv[(int)p[i].x][(int)p[i].y]->own=p[i].own;
+				liv[(int)p[i].x][(int)p[i].y]->hp-=p[i].eqp;
+				liv[(int)p[i].x][(int)p[i].y]->vy+=BLB*p[i].vy;
+				liv[(int)p[i].x][(int)p[i].y]->vx+=BLB*p[i].vx;
+
+#ifdef WEAKMSG
+				char ts[34];
+				strcpy(ts,"你打了");
+				strcat(ts,liv[(int)p[i].x][(int)p[i].y]->c);
+				addmsg(p[i].own,ts);
+				strcpy(ts,p[i].own->c);
+				strcat(ts,"打了你");
+				addmsg(liv[(int)p[i].x][(int)p[i].y],ts);
+#endif
+
+				continue;
+			}
+			if ((BNT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
+			p[i].mt=clock();
+			p[i].hp--;
+			spawn(22,p[i].x+p[i].vx,p[i].y+p[i].vy);  //冲击波基础扩散
+			p[pn].hp=p[i].hp;
+			p[pn].vx=p[i].vx; p[pn].vy=p[i].vy;
+			if ((p[i].vy!=0)&&(liv[(int)(p[i].x-1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))  //冲击波扩展扩散
+			{
+				spawn(22,p[i].x-1,p[i].y+p[i].vy);
+				p[pn].hp=p[i].hp;
+				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy;			
+			}
+			if ((p[i].vy!=0)&&(liv[(int)(p[i].x+1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))
+			{
+				spawn(22,p[i].x+1,p[i].y+p[i].vy);
+				p[pn].hp=p[i].hp;
+				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy;			
+			}
+			if ((p[i].vx!=0)&&(liv[(int)p[i].x][(int)(p[i].y-1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y-1)]->id!=2))
+			{
+				spawn(22,p[i].x+p[i].vx,p[i].y-1);
+				p[pn].hp=p[i].hp;
+				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy;			
+			}
+			if ((p[i].vx!=0)&&(liv[(int)p[i].x][(int)(p[i].y+1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+1)]->id!=2))
+			{
+				spawn(22,p[i].x+p[i].vx,p[i].y+1);
+				p[pn].hp=p[i].hp;
+				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy;			
+			}
 		}
 	}
 }
@@ -368,13 +549,25 @@ clock_t st=0;
  
 void control1(player *q)
 {
-	if (q->hp==-1958) return;
+	if (q->qut==1) return;
 
 	int z=0;  //???
 	if ((MT*CLOCKS_PER_SEC/1000)+st<=clock())
 	{
 		z=1; st=clock();
 	}
+
+#ifdef WIN
+	if ((keyp("w"))&&(GetKeyState(VK_SHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0),q->og-=2+rand()%6;
+	if ((keyp("a"))&&(GetKeyState(VK_SHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3),q->og-=2+rand()%6;
+	if ((keyp("s"))&&(GetKeyState(VK_SHIFT)<0)&&(q->og>RUNOG)) move(q,3,0),q->og-=2+rand()%6;
+	if ((keyp("d"))&&(GetKeyState(VK_SHIFT)<0)&&(q->og>RUNOG)) move(q,0,3),q->og-=2+rand()%6;
+#endif
+
+	if (keyp("w")&&(keyp("a"))) move(q,-sqrt(2)/2,-sqrt(2)/2);
+	if (keyp("w")&&(keyp("d"))) move(q,-sqrt(2)/2,sqrt(2)/2);
+	if (keyp("s")&&(keyp("a"))) move(q,sqrt(2)/2,-sqrt(2)/2);
+	if (keyp("s")&&(keyp("d"))) move(q,sqrt(2)/2,sqrt(2)/2);
 	if (keyp("w")) move(q,-1,0);
 	if (keyp("a")) move(q,0,-1);
 	if (keyp("s")) move(q,1,0);
@@ -393,12 +586,12 @@ void control1(player *q)
 	if (keyp("f")) attack(q,0,-1);
 	if (keyp("g")) attack(q,1,0);
 	if (keyp("h")) attack(q,0,1);
-	if (z&&keyp("c")) spawn(2);
+	if (z&&keyp("c")) spawn(2,rand()%60+21,rand()%60+21);
 }
  
 void control2(player *q)
 {
-	if (q->hp==-1958) return;
+	if (q->qut==1) return;
 	if (keyp("i")) move(q,-1,0);
 	if (keyp("j")) move(q,0,-1);
 	if (keyp("k")) move(q,1,0);
@@ -407,9 +600,14 @@ void control2(player *q)
  
 void gamescreen()
 {
-	inbufn=0; ppst=dpst=fpst=clock(); fpsf=fps=0;
+	inbufn=0; opst=ppst=dpst=fpst=clock(); fpsf=fps=0;
 	while (1)
 	{
+
+		playerlogic();
+			
+		maprefresh();
+
 		if (fpst+1000*CLOCKS_PER_SEC/1000<=clock())
 		{
 			fps=fpsf; fpsf=0; fpst=clock();
@@ -421,11 +619,13 @@ void gamescreen()
 			ppst=clock();
 			physics();
 		}
-		
-		playerlogic();
-			
-		maprefresh();
-		
+
+		if (opst+OT*CLOCKS_PER_SEC/1000<=clock())
+		{
+			opst=clock();
+			oxygen();
+		}
+
 		if (dpst+DT*CLOCKS_PER_SEC/1000<=clock())
 		{
 			dpst=clock(); fpsf++;

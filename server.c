@@ -1,50 +1,57 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <stdio.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <sys/shm.h>
- 
-#define MYPORT  8887
-#define BUFFER_SIZE 1024
- 
-int main()
+#include<winsock2.h>
+#include<stdio.h>
+#include<string.h>
+//#pragma comment(lib,"ws2_32.lib")
+
+void main()
 {
-    ///定义sockfd
-    int sock_cli = socket(AF_INET,SOCK_STREAM, 0);
- 
-    ///定义sockaddr_in
-    struct sockaddr_in servaddr;
-    memset(&servaddr, 0, sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(MYPORT);  ///服务器端口
-    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");  ///服务器ip
- 
-    ///连接服务器，成功返回0，错误返回-1
-    if (connect(sock_cli, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-    {
-        perror("connect");
-        exit(1);
-    }
- 
-    char sendbuf[BUFFER_SIZE];
-    char recvbuf[BUFFER_SIZE];
-    while (fgets(sendbuf, sizeof(sendbuf), stdin) != NULL)
-    {
-        send(sock_cli, sendbuf, strlen(sendbuf),0); ///发送
-        if(strcmp(sendbuf,"exit\n")==0)
-            break;
-        recv(sock_cli, recvbuf, sizeof(recvbuf),0); ///接收
-        fputs(recvbuf, stdout);
- 
-        memset(sendbuf, 0, sizeof(sendbuf));
-        memset(recvbuf, 0, sizeof(recvbuf));
-    }
- 
-    close(sock_cli);
-    return 0;
+WORD wVersionRequested;
+WSADATA wsaData;
+int err;
+wVersionRequested=MAKEWORD(1,1);
+err=WSAStartup(wVersionRequested,&wsaData);
+if(err!=0)
+{
+return;
+}
+if(LOBYTE(wsaData.wVersion)!=1||HIBYTE(wsaData.wVersion)!=1)
+{
+WSACleanup();
+return;
+}
+SOCKET sockSrv=socket(AF_INET,SOCK_STREAM,0);
+SOCKADDR_IN addrSrv;
+addrSrv.sin_addr.S_un.S_addr=htonl(INADDR_ANY);
+addrSrv.sin_family=AF_INET;
+addrSrv.sin_port=htons(6000);
+bind(sockSrv,(SOCKADDR*)&addrSrv,sizeof(SOCKADDR));
+listen(sockSrv,6);
+char sendBuf[100];
+char recvBuf[100];
+char tempBuf[100];
+SOCKADDR_IN addrClient;
+int len=sizeof(SOCKADDR);
+while(1)
+{
+printf("waiting for client\n");
+SOCKET sockConn=accept(sockSrv,(SOCKADDR*)&addrClient,&len);
+recv(sockConn,tempBuf,100,0);
+if(tempBuf[0]!='q')
+{
+sprintf(recvBuf,"%s say: %s",inet_ntoa(addrClient.sin_addr),tempBuf);
+printf("%s\n",recvBuf);
+printf("please input your data,server:\n");
+gets(sendBuf);
+send(sockConn,sendBuf,strlen(sendBuf)+1,0);
+}
+else
+{
+printf("%s request to quit the chat platform",inet_ntoa(addrClient.sin_addr));
+send(sockConn,"q",strlen("q")+1,0);
+closesocket(sockConn);
+break;
+}
+}
+closesocket(sockSrv);
+WSACleanup();
 }
