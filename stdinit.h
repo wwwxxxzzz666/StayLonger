@@ -10,7 +10,7 @@ typedef struct{
 typedef struct player{
 	int id,fc;
 	int hp,fd,wt,og;
-	item *tol;
+	item tol;
 	int eqp;
 	int sx,sy;
 	int qut;  //死亡宣告
@@ -21,6 +21,8 @@ typedef struct player{
 	struct player *own;
 	char c[17];
 	char msg[3][34];
+	int kill[21];  //击杀数
+	int score;  //分数
 }player;
  
 typedef struct{
@@ -60,47 +62,57 @@ void stiinit()
 {
 	int i;
 	for (i=0;i<=MI;i++) sti[i].id=i;
-	strcpy(sti[0].c,"双手");sti[0].dmg=5;sti[0].ft=500; sti[0].blow=0.5;
+	strcpy(sti[0].c,"双手");sti[0].dmg=5;sti[0].ft=500; sti[0].ava=7; sti[0].blow=0.5;
 	strcpy(sti[1].c,"小枪");sti[1].dmg=3;sti[1].ft=300; sti[1].ava=25;
 	strcpy(sti[2].c,"手雷");sti[2].dmg=20;sti[2].ft=600; sti[2].ava=5;
-	strcpy(sti[3].c,"球棒");sti[3].dmg=10;sti[3].ft=600; sti[3].blow=0.8;
+	strcpy(sti[3].c,"球棒");sti[3].dmg=10;sti[3].ft=600; sti[3].ava=7; sti[3].blow=0.8;
 }
  
 void stpinit()
 {
 	int i;
-	for (i=0;i<=MP;i++) stp[i].id=i;
+	for (i=0;i<=MP;i++) {stp[i].id=i; stp[i].score=0;}
 	strcpy(stp[0].c,"测试");
 	stp[0].sx=stp[0].sy=1;
 	strcpy(stp[1].c,"玩家");
-	stp[1].hp=stp[1].fd=stp[1].wt=stp[1].og=1000;
-	stp[1].tol=&sti[0];
+	stp[1].hp=stp[1].fd=stp[1].wt=stp[1].og=10;
+	stp[1].tol=sti[0];
 	stp[1].eqp=0;
 	stp[1].spd=0.333;
 	stp[1].miu=0.33;
+	stp[1].score=-100;
 	strcpy(stp[2].c,"敌人");
 	stp[2].hp=stp[2].fd=stp[2].wt=stp[2].og=100;
-	stp[2].tol=&sti[1];
+	stp[2].tol=sti[1];
+	stp[2].tol.ava=50;
+	stp[2].tol.ft=500;
 	stp[2].eqp=0;
 	stp[2].spd=0.3;
-	stp[3].miu=0.33;
+	stp[2].miu=0.33;
+	stp[2].score=15;
 	strcpy(stp[3].c,"护卫");
 	stp[3].hp=stp[3].fd=stp[3].wt=stp[3].og=100;
-	stp[3].tol=&sti[1];
+	stp[3].tol=sti[1];
+	stp[3].tol.ava=70;
+	stp[3].tol.ft=300;
 	stp[3].eqp=0;
 	stp[3].spd=0.3;
 	stp[3].miu=0.33;
+	stp[1].score=-10;
 	strcpy(stp[4].c,"手雷");
 	stp[4].hp=10;
+	stp[4].tol=sti[0];
 	stp[4].eqp=5;  //暂定伤害
 	stp[4].spd=0;
 	stp[4].miu=0.95;
 	strcpy(stp[21].c,"子弹");
 	stp[21].hp=20;
+	stp[21].tol=sti[0];
 	stp[21].eqp=8;  //暂定伤害
 	stp[21].spd=0.7;
 	strcpy(stp[22].c,"冲击波");
 	stp[22].hp=3;
+	stp[22].tol=sti[0];
 	stp[22].eqp=20;  //暂定伤害
 	stp[22].spd=0;
 }

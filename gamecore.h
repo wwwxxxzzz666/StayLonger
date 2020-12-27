@@ -45,21 +45,43 @@ void move(player *q,double xx,double yy)
 	q->mt=clock();
 	q->vx+=xx*q->spd; q->vy+=yy*q->spd;
 }
- 
+
+void pickup(player *q)
+{
+	q->tol=imap[(int)(q->x)][(int)(q->y)];
+	iflor[(int)(q->x)][(int)(q->y)]=&stb[1];
+	imap[(int)(q->x)][(int)(q->y)]=sti[0];
+}
+
+void drop(player *q)
+{
+	iflor[(int)(q->x)][(int)(q->y)]=&stb[q->tol.id+70];
+	imap[(int)(q->x)][(int)(q->y)]=q->tol;
+	q->tol=sti[0];
+}
+
+void ammocheck(player *q)
+{
+	if (q->tol.ava<=0)
+	{
+		q->tol=sti[0];
+	}
+}
+
 void attack(player *pp,int xx,int yy)
 {
-	if ((pp->tol->ft*CLOCKS_PER_SEC/1000)+pp->at>clock()) return;
+	if ((pp->tol.ft*CLOCKS_PER_SEC/1000)+pp->at>clock()) return;
 	if (((int)(pp->x)+xx<1)||((int)(pp->x)+xx>MX)) return;
 	if (((int)(pp->y)+yy<1)||((int)(pp->y)+yy>MY)) return;
 	pp->at=clock();
-	if ((pp->tol->id==0)||(pp->tol->id==3))  //双手&球棒
+	if ((pp->tol.id==0)||(pp->tol.id==3))  //双手&球棒
 	{
 		if (liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->id==0) return;
 		if (liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->hp)
 			liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->own=pp;
-		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->hp-=pp->tol->dmg; //!!!
-		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->vy+=(abs(pp->vy)+pp->tol->blow)*EK*yy;
-		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->vx+=(abs(pp->vx)+pp->tol->blow)*EK*xx;
+		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->hp-=pp->tol.dmg; //!!!
+		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->vy+=(abs(pp->vy)+pp->tol.blow)*EK*yy;
+		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->vx+=(abs(pp->vx)+pp->tol.blow)*EK*xx;
 
 #ifdef WEAKMSG
 		char ts[34];
@@ -72,20 +94,23 @@ void attack(player *pp,int xx,int yy)
 #endif
 
 	}
-	if (pp->tol->id==1)  //小枪
+	if (pp->tol.id==1)  //小枪
 	{
+		pp->tol.ava--;
 		pn++;
-		p[pn]=stp[21];p[pn].sx=xx;p[pn].sy=yy;p[pn].eqp+=pp->tol->dmg;
+		p[pn]=stp[21];p[pn].sx=xx;p[pn].sy=yy;p[pn].eqp+=pp->tol.dmg;
 		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
 		p[pn].own=pp;
 	}
-	if (pp->tol->id==2)  //手雷
+	if (pp->tol.id==2)  //手雷
 	{
+		pp->tol.ava--;
 		pn++;
-		p[pn]=stp[4]; p[pn].vx=pp->vx+0.8*xx; p[pn].vy=pp->vy+0.8*yy; p[pn].eqp+=pp->tol->dmg;
+		p[pn]=stp[4]; p[pn].vx=pp->vx+0.8*xx; p[pn].vy=pp->vy+0.8*yy; p[pn].eqp+=pp->tol.dmg;
 		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
 		p[pn].own=pp;
 	}
+	ammocheck(pp);
 }
 
 void ai2(player *q)
@@ -97,7 +122,54 @@ void ai2(player *q)
 	
 	for (i=1;i<=pn;i++)  //找目标
 	{
-		if ((q==&p[i])||(p[i].id>1)) continue;
+		if ((q==&p[i])||((p[i].id!=1)&&(p[i].id!=3))) continue;
+		if (qdism(q,&p[i])<dmin)
+		{
+			dmin=qdism(q,&p[i]);
+			tar=&p[i];
+		}
+	}
+
+	if (tar==&p[0]) return;
+
+	if (qdism(q,tar)==0)  //行为
+	{
+		attack(q,sgnx(q,tar),sgny(q,tar));
+		int t=rand()%3-1;
+		int tt=rand()%3-1;
+		if (qdisx(q,tar)==0)
+		{
+			move(q,t,sgny(q,tar)+tt);
+		}
+		else
+		{
+			move(q,sgnx(q,tar)+tt,t);
+		}
+	}
+	else
+	{
+		if (qdisx(q,tar)<=qdisy(q,tar))
+		{
+			move(q,sgnx(q,tar),0);
+		}
+		else
+		{
+			move(q,0,sgny(q,tar));
+		}
+	}
+	
+}
+
+void ai3(player *q)
+{
+	player *tar;
+	tar=&p[0];  //??
+	int dmin=1<<7;
+	int i,j;
+	
+	for (i=1;i<=pn;i++)  //找目标
+	{
+		if ((q==&p[i])||(p[i].id!=2)) continue;
 		if (qdism(q,&p[i])<dmin)
 		{
 			dmin=qdism(q,&p[i]);
