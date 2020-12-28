@@ -1,55 +1,105 @@
-void playerinit(int playern)
+void playerinit(int playern,int level)
 {
-	int i;
-	pn=playern;
-	//p[0].id=0;p[0].sx=p[0].sy=1;
-	p[0]=stp[0];
-	for (i=1;i<=playern;i++)
+	if (level==0)  //自由模式
 	{
-		p[i]=stp[1];
-/*		p[i].id=1;p[i].fc=i-1;
-		p[i].hp=p[i].fd=p[i].wt=p[i].og=100;
-		p[i].tol=&sti[0];
-		p[i].eqp=0;*/
-		p[i].at=p[i].mt=p[i].ot=0;
-		p[i].sx=p[i].sy=1;
-		p[i].vx=p[i].vy=0;
-		p[i].x=p[i].y=9+i;
-		p[i].qut=0;
-		p[i].own=&p[i];
-//		p[i].spd=1;
-		strcpy(p[i].msg[1],"~~");
-		strcpy(p[i].msg[2],"~~");
-        int j;
-        for (j=0;j<=20;j++)
-        {
-            p[i].kill[j]=0;
-        }
+		int i;
+		pn=playern;
+		//p[0].id=0;p[0].sx=p[0].sy=1;
+		p[0]=stp[0];
+		for (i=1;i<=playern;i++)
+		{
+			p[i]=stp[1];
+	/*		p[i].id=1;p[i].fc=i-1;
+			p[i].hp=p[i].fd=p[i].wt=p[i].og=100;
+			p[i].tol=&sti[0];
+			p[i].eqp=0;*/
+			p[i].at=p[i].mt=p[i].ot=0;
+			p[i].sx=p[i].sy=1;
+			p[i].vx=p[i].vy=0;
+			p[i].x=p[i].y=9+i;
+			p[i].qut=0;
+			p[i].own=&p[i];
+	//		p[i].spd=1;
+			strcpy(p[i].msg[1],"~~");
+			strcpy(p[i].msg[2],"~~");
+			int j;
+			for (j=0;j<=20;j++)
+			{
+				p[i].kill[j]=0;
+			}
+		}
+		strcpy(p[1].c,"玩家1");
+		if (playern==2) strcpy(p[2].c,"玩家2");
 	}
-	strcpy(p[1].c,"玩家1");
-    if (playern==2) strcpy(p[2].c,"玩家2");
+	else if (level==1)  //挑战1
+	{
+		int i;
+		pn=playern;
+		//p[0].id=0;p[0].sx=p[0].sy=1;
+		p[0]=stp[0];
+		for (i=1;i<=playern;i++)
+		{
+			p[i]=stp[1];
+			p[i].at=p[i].mt=p[i].ot=0;
+			p[i].sx=p[i].sy=1;
+			p[i].vx=p[i].vy=0;
+			p[i].qut=0;
+			p[i].own=&p[i];
+			strcpy(p[i].msg[1],"~~");
+			strcpy(p[i].msg[2],"~~");
+			int j;
+			for (j=0;j<=20;j++)
+			{
+				p[i].kill[j]=0;
+			}
+		}
+		p[1].x=p[1].y=49;
+		strcpy(p[1].c,"玩家1");
+		if (playern==2)
+		{
+			p[2].x=p[2].y=51;
+			strcpy(p[2].c,"玩家2");
+		}
+	}
 }
  
-void mapload()
+void mapload(int level)
 {
 	int i,j;
-	for (i=1;i<=MX;i++)
-	    for (j=1;j<=MY;j++)
-	    {
-	    	int t=rand()%6+1;
-	    	flor[i][j]=t;
-	        map[i][j]=&stb[1];
-	        iflor[i][j]=&stb[1];
-	        liv[i][j]=&p[0];
-	    }
-	    
-	iflor[8][8]=iflor[7][8]=&stb[71];
-	imap[8][8]=imap[7][8]=sti[1];
-	iflor[9][10]=&stb[72];
-	imap[9][10]=sti[2];
-	iflor[7][10]=&stb[73];
-	imap[7][10]=sti[3];
-	
+	if (level==0)  //自由模式
+	{
+		for (i=1;i<=MX;i++)
+			for (j=1;j<=MY;j++)
+			{
+				int t=rand()%6+1;
+				flor[i][j]=t;
+				map[i][j]=&stb[1];
+				iflor[i][j]=&stb[1];
+				liv[i][j]=&p[0];
+			}
+			
+		iflor[8][8]=iflor[7][8]=&stb[71];
+		imap[8][8]=imap[7][8]=sti[1];
+		iflor[9][10]=&stb[72];
+		imap[9][10]=sti[2];
+		iflor[7][10]=&stb[73];
+		imap[7][10]=sti[3];
+	}
+	else if (level==1)  //挑战1
+	{
+		for (i=1;i<=MX;i++)
+			for (j=1;j<=MY;j++)
+			{
+				int t=rand()%6+1;
+				flor[i][j]=t;
+				map[i][j]=&stb[1];
+				iflor[i][j]=&stb[1];
+				liv[i][j]=&p[0];
+			}
+			
+		iflor[30][30]=iflor[70][70]=&stb[71];
+		imap[30][30]=imap[70][80]=sti[1];
+	}
 	for (i=0;i<=MX+1;i++)
 	{
 		map[0][i]=map[MX+1][i]=map[i][0]=map[i][MY+1]=&stb[2];
@@ -312,6 +362,16 @@ void oxygen()  //氧气和其他生物事件判定
 	}
 }
 
+void mapspawn(int level)  //地图自动大刷新
+{
+	if (level==1)  //挑战1
+	{
+		int i;
+		for (i=1;i<=((clock()-stayt)/1000)/10;i++)
+			spawn(2,rand()%60+21,rand()%60+21);
+	}
+}
+
 void playerlogic()
 {
 	int i;
@@ -546,10 +606,10 @@ void control1(player *q,int *exitflag)
 	}
 
 #ifdef WIN
-	if ((keyp("w"))&&(GetKeyState(VK_SHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0),q->og-=2+rand()%6;
-	if ((keyp("a"))&&(GetKeyState(VK_SHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3),q->og-=2+rand()%6;
-	if ((keyp("s"))&&(GetKeyState(VK_SHIFT)<0)&&(q->og>RUNOG)) move(q,3,0),q->og-=2+rand()%6;
-	if ((keyp("d"))&&(GetKeyState(VK_SHIFT)<0)&&(q->og>RUNOG)) move(q,0,3),q->og-=2+rand()%6;
+	if ((keyp("w"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0),q->og-=2+rand()%6;
+	if ((keyp("a"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3),q->og-=2+rand()%6;
+	if ((keyp("s"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,3,0),q->og-=2+rand()%6;
+	if ((keyp("d"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,0,3),q->og-=2+rand()%6;
 #endif
 
 	if (keyp("w")&&(keyp("a"))) move(q,-sqrt(2)/2,-sqrt(2)/2);
@@ -560,11 +620,11 @@ void control1(player *q,int *exitflag)
 	if (keyp("a")) move(q,0,-1);
 	if (keyp("s")) move(q,1,0);
 	if (keyp("d")) move(q,0,1);
-	if (keyp("q")&&q->tol.id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
+	if (keyp("r")&&q->tol.id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
 	{
 		drop(q);
 	}
-	if (keyp("e")&&(q->tol.id==0)&&(iflor[(int)(q->x)][(int)(q->y)]->id>70))
+	if (keyp("y")&&(q->tol.id==0)&&(iflor[(int)(q->x)][(int)(q->y)]->id>70))
 	{
 		pickup(q);
 	}
@@ -572,26 +632,66 @@ void control1(player *q,int *exitflag)
 	if (keyp("f")) attack(q,0,-1);
 	if (keyp("g")) attack(q,1,0);
 	if (keyp("h")) attack(q,0,1);
+    #ifdef WIN
 	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21);
 	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21);
-    #ifdef WIN
     if (GetKeyState(VK_ESCAPE)<0) *exitflag=1;
     #endif
 }
  
-void control2(player *q)
+void control2(player *q,int *exitflag)
 {
-	if (q->qut==1) return;
+/*	if (q->qut==1) return;
 	if (keyp("i")) move(q,-1,0);
 	if (keyp("j")) move(q,0,-1);
 	if (keyp("k")) move(q,1,0);
-	if (keyp("l")) move(q,0,1);
+	if (keyp("l")) move(q,0,1);*/
+	if (q->qut==1) return;
+
+	int z=0;  //???
+	if ((MT*CLOCKS_PER_SEC/1000)+st<=clock())
+	{
+		z=1; st=clock();
+	}
+
+#ifdef WIN
+	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0),q->og-=2+rand()%6;
+	if ((GetKeyState(VK_LEFT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3),q->og-=2+rand()%6;
+	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,3,0),q->og-=2+rand()%6;
+	if ((GetKeyState(VK_RIGHT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,3),q->og-=2+rand()%6;
+
+	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_LEFT)<0)) move(q,-sqrt(2)/2,-sqrt(2)/2);
+	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RIGHT)<0)) move(q,-sqrt(2)/2,sqrt(2)/2);
+	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_LEFT)<0)) move(q,sqrt(2)/2,-sqrt(2)/2);
+	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_RIGHT)<0)) move(q,sqrt(2)/2,sqrt(2)/2);
+	if (GetKeyState(VK_UP)<0) move(q,-1,0);
+	if (GetKeyState(VK_LEFT)<0) move(q,0,-1);
+	if (GetKeyState(VK_DOWN)<0) move(q,1,0);
+	if (GetKeyState(VK_RIGHT)<0) move(q,0,1);
+#endif
+	if (keyp("u")&&q->tol.id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
+	{
+		drop(q);
+	}
+	if (keyp("o")&&(q->tol.id==0)&&(iflor[(int)(q->x)][(int)(q->y)]->id>70))
+	{
+		pickup(q);
+	}
+	if (keyp("i")) attack(q,-1,0);
+	if (keyp("j")) attack(q,0,-1);
+	if (keyp("k")) attack(q,1,0);
+	if (keyp("l")) attack(q,0,1);
+    #ifdef WIN
+	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21);
+	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21);
+    if (GetKeyState(VK_ESCAPE)<0) *exitflag=1;
+    #endif
 }
  
-void gamescreen(int playern)
+void gamescreen(int playern,int level)
 {
     clrscr();
-	inbufn=0; opst=ppst=dpst=fpst=clock(); fpsf=fps=0;
+	inbufn=0; spst=opst=ppst=dpst=fpst=clock(); fpsf=fps=0;
     stayt=clock();
     int zz=0;  //退出标记
 	while (1)
@@ -606,7 +706,13 @@ void gamescreen(int playern)
 			fps=fpsf; fpsf=0; fpst=clock();
 			inbufn=0;
 		}
-		
+
+		if ((level!=0)&&(spst+ST*CLOCKS_PER_SEC/1000<=clock()))
+		{
+			spst=clock();
+			mapspawn(level);
+		}
+
 		if (ppst+PT*CLOCKS_PER_SEC/1000<=clock())
 		{
 			ppst=clock();
@@ -635,7 +741,7 @@ void gamescreen(int playern)
 		
 //		controldbg();
 		control1(&p[1],&zz);
-		if (playern==2) control2(&p[2]);
+		if (playern==2) control2(&p[2],&zz);
 		
         if (endcheck()) zz=1;
 

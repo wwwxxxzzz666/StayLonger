@@ -13,6 +13,7 @@ typedef struct player{
 	item tol;
 	int eqp;
 	int sx,sy;
+	int team;  //阵营
 	int qut;  //死亡宣告
 	clock_t at,mt,ot; //攻击冷却，移动冷却，氧气冷却
 	double x,vx,y,vy;
@@ -64,7 +65,7 @@ void stiinit()
 	for (i=0;i<=MI;i++) sti[i].id=i;
 	strcpy(sti[0].c,"双手");sti[0].dmg=5;sti[0].ft=500; sti[0].ava=7; sti[0].blow=0.5;
 	strcpy(sti[1].c,"小枪");sti[1].dmg=3;sti[1].ft=300; sti[1].ava=25;
-	strcpy(sti[2].c,"手雷");sti[2].dmg=20;sti[2].ft=600; sti[2].ava=5;
+	strcpy(sti[2].c,"手雷");sti[2].dmg=20;sti[2].ft=1000; sti[2].ava=5;
 	strcpy(sti[3].c,"球棒");sti[3].dmg=10;sti[3].ft=600; sti[3].ava=7; sti[3].blow=0.8;
 }
  
@@ -78,15 +79,17 @@ void stpinit()
 	stp[1].hp=stp[1].fd=stp[1].wt=stp[1].og=10;
 	stp[1].tol=sti[0];
 	stp[1].eqp=0;
+	stp[1].team=0;
 	stp[1].spd=0.333;
 	stp[1].miu=0.33;
-	stp[1].score=-100;
+	stp[1].score=-50;
 	strcpy(stp[2].c,"敌人");
 	stp[2].hp=stp[2].fd=stp[2].wt=stp[2].og=100;
 	stp[2].tol=sti[1];
 	stp[2].tol.ava=50;
 	stp[2].tol.ft=500;
 	stp[2].eqp=0;
+	stp[2].team=1;
 	stp[2].spd=0.3;
 	stp[2].miu=0.33;
 	stp[2].score=15;
@@ -96,9 +99,10 @@ void stpinit()
 	stp[3].tol.ava=70;
 	stp[3].tol.ft=300;
 	stp[3].eqp=0;
+	stp[3].team=0;
 	stp[3].spd=0.3;
 	stp[3].miu=0.33;
-	stp[1].score=-10;
+	stp[3].score=-10;
 	strcpy(stp[4].c,"手雷");
 	stp[4].hp=10;
 	stp[4].tol=sti[0];

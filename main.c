@@ -28,6 +28,7 @@
 #define DT 1  //绘制延迟，单位ms
 #define PT 10  //物理计算单位时间，单位ms
 #define OT 1000  //氧气判定单位时间，单位ms
+#define ST 5000  //地图刷新单位时间，单位ms
 
 #define BUB 1.3  //子弹击退常数
 #define BLB 3.2  //冲击波击退常数
@@ -52,9 +53,11 @@ player p[OBJMAX];
 int pn;  //玩家和ai数量
 int PS;  //玩家数量
 int fps,fpsf;
-clock_t fpst,dpst,ppst,opst;
+clock_t fpst,dpst,ppst,opst,spst;
 clock_t stayt; //游戏坚持时间
 FILE *fp;
+char tips[10][75];  //提示信息
+int tipn; //提示信息数
 
 #include "basic.h"
 
@@ -94,7 +97,7 @@ void background()
 	print("   Alpha 0.7                                          ",5,6);
 }
 
-void gameend()
+void gameend(int level)
 {
     int i;
     for (i=1;i<=16;i++)
@@ -103,42 +106,109 @@ void gameend()
         wait(60);
     }
     background();
-    gotoxy(3,1);
-    print("                      结    束                        \n",7,6);
-	print("  共存活了",14,6);
-	printf("\e[0;37m\e[46m %.2lf\e[0m",(clock()-stayt)/1000.0);
-	print("s,Stayer!\n",14,6);
-    for (i=1;i<=PS;i++)
-    {
-        print(p[i].c,14,6); printf("\n");
-        print("  分数：",14,6);
-        int j,t=0;
-        t=(int)(((clock()-stayt)/1000.0)*1.5);
-        for (j=1;j<=20;j++) t+=p[i].kill[j]*stp[j].score;
-        printf("\e[0;37m\e[46m  %d\e[0m\n",t);
-        printf("\n");
-    }
-	    print("\n  按下ESC或者B键返回",14,6);
-	while (1)
+	if (level==0)  //自由模式
 	{
-		getinput();
-		if (keyp("b")) {clrscr(); return;}
-		#ifdef WIN
-		if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
-		#endif
+		gotoxy(3,1);
+		print("                      结    束                        \n",7,6);
+		print("  共存活了",14,6);
+		printf("\e[0;37m\e[46m %.2lf\e[0m",(clock()-stayt)/1000.0);
+		print("s,Stayer!\n",14,6);
+		for (i=1;i<=PS;i++)
+		{
+			print(p[i].c,14,6); printf("\n");
+			print("  分数：",14,6);
+			int j,t=0;
+			t=(int)(((clock()-stayt)/1000.0)*1.5);
+			for (j=1;j<=20;j++) t+=p[i].kill[j]*stp[j].score;
+			printf("\e[0;37m\e[46m  %d\e[0m\n",t);
+			printf("\n");
+		}
+			print("\n  按下ESC或者B键返回",14,6);
+		while (1)
+		{
+			getinput();
+			if (keyp("b")) {clrscr(); return;}
+			#ifdef WIN
+			if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
+			#endif
+		}
+	}
+	else if (level==1)  //挑战1
+	{
+		gotoxy(3,1);
+		print("                      结    束                        \n",7,6);
+		print("  共存活了",14,6);
+		printf("\e[0;37m\e[46m %.2lf\e[0m",(clock()-stayt)/1000.0);
+		print("s,Stayer!\n",14,6);
+		for (i=1;i<=PS;i++)
+		{
+			print(p[i].c,14,6); printf("\n");
+			print("  分数：",14,6);
+			int j,t=0;
+			t=(int)(((clock()-stayt)/1000.0)*1.5);
+			for (j=1;j<=20;j++) t+=p[i].kill[j]*stp[j].score;
+			printf("\e[0;37m\e[46m  %d\e[0m\n",t);
+			printf("\n");
+		}
+			print("\n  按下ESC或者B键返回",14,6);
+		while (1)
+		{
+			getinput();
+			if (keyp("b")) {clrscr(); return;}
+			#ifdef WIN
+			if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
+			#endif
+		}
 	}
 }
 
-void freelevel()
+void levelinfo(int level)
+{
+	wait(200);
+	clrscr();
+	background();
+	if (level==1)  //挑战1
+	{
+		while (1)
+		{
+			gotoxy(3,1);
+			print("                    小 试 牛 刀                  ",7,6);
+			gotoxy(5,1);
+			print("      作为刚刚出道的新Stayer",14,6);
+			gotoxy(6,1);
+			print("  你接下来将要在一个有限的空间里尽可能活得更久",14,6);
+			gotoxy(7,1);
+			print("  毕竟是小试牛刀所以没什么好说的啦",14,6);
+			gotoxy(8,1);
+			print("  证明自己的实力吧！New Stayer！",14,6);
+			gotoxy(13,1);
+			print("  按下回车或者E键继续~",14,6);
+			getinput();
+			if (keyp("e")) {clrscr(); return;}
+			#ifdef WIN
+			if (GetKeyState(VK_RETURN)<0) {clrscr(); return;}
+			#endif
+		}	
+	}
+}
+
+void levelentry(int level)
 {
 	wait(200);
 	clrscr();
 	clock_t st=clock();
 	int zz=1;
+	char lev[6][75];
+	strcpy(lev[0],"                      自由模式                        ");
+	strcpy(lev[1],"                      挑 战 1                         ");
+	strcpy(lev[2],"                      挑 战 2                         ");
+	strcpy(lev[3],"                      挑 战 3                         ");
+	strcpy(lev[4],"                      挑 战 4                         ");
+	strcpy(lev[5],"                      挑 战 5                         ");
 	char sel[5][75];
 	strcpy(sel[0],"                                                      ");
-	strcpy(sel[1],"                      单人模式                        ");
-	strcpy(sel[2],"                      多人模式                        ");
+	strcpy(sel[1],"                      独狼模式                        ");
+	strcpy(sel[2],"                      基友模式                        ");
 	strcpy(sel[3],"                      返    回                        ");
 	strcpy(sel[4],"                                                      ");
 	int z=1;
@@ -150,7 +220,7 @@ void freelevel()
 			zz=1; st=clock();
 		}
 		gotoxy(3,1);
-		print("                      自由模式                        ",7,6);
+		print(lev[level],7,6);
 		gotoxy(9,1);
 		print(sel[z-1],12,6);
 		gotoxy(10,1);
@@ -161,22 +231,22 @@ void freelevel()
 		getinput();
 		if (zz&&keyp("w")&&(z>1)) zz=0,z--;
 		if (zz&&keyp("s")&&(z<3)) zz=0,z++;
-		if (keyp("b")) {clrscr(); return;}
+		if (keyp("b")) {wait(200); clrscr(); return;}
 		if (keyp("e"))
 		{
 			if (z==1)
 			{
-				PS=1; stiinit(); stbinit(); stpinit(); mapload(); playerinit(1); gamescreen(1);
-				gameend();
+				PS=1; stiinit(); stbinit(); stpinit(); mapload(level); playerinit(1,level); gamescreen(1,level);
+				gameend(level);
 			}
 			else if (z==2)
 			{
-				PS=2; stiinit(); stbinit(); stpinit(); mapload(); playerinit(2); gamescreen(2);
-				gameend();
+				PS=2; stiinit(); stbinit(); stpinit(); mapload(level); playerinit(2,level); gamescreen(2,level);
+				gameend(level);
 			}
 			else if (z==3)
 			{
-				return;
+				wait(200); clrscr(); return;
 			}
 		}
 		#ifdef WIN
@@ -184,18 +254,81 @@ void freelevel()
 		{
 			if (z==1)
 			{
-				stiinit(); stbinit(); stpinit(); mapload(); playerinit(1); gamescreen(1);
+				stiinit(); stbinit(); stpinit(); mapload(level); playerinit(1,level); gamescreen(1,level);
+				gameend(level);
 			}
 			else if (z==2)
 			{
-				stiinit(); stbinit(); stpinit(); mapload(); playerinit(2); gamescreen(2);
+				stiinit(); stbinit(); stpinit(); mapload(level); playerinit(2,level); gamescreen(2,level);
+				gameend(level);
 			}
 			else if (z==3)
 			{
-				return;
+				wait(200); clrscr(); return;
 			}
 		}
-	    if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
+	    if (GetKeyState(VK_ESCAPE)<0) {wait(200); clrscr(); return;}
+		#endif
+	}
+}
+
+void challenge()
+{
+	wait(200);
+	clrscr();
+	clock_t st=clock();
+	int zz=1;
+	char sel[5][75];
+	strcpy(sel[0],"                                                      ");
+	strcpy(sel[1],"                      挑 战 1                         ");
+	strcpy(sel[2],"                      挑 战 2                         ");
+	strcpy(sel[3],"                      返    回                        ");
+	strcpy(sel[4],"                                                      ");
+	int z=1;
+	background();
+	while (1)
+	{
+		if ((MENUT*CLOCKS_PER_SEC/1000)+st<=clock())
+		{
+			zz=1; st=clock();
+		}
+		gotoxy(3,1);
+		print("                      挑    战                        ",7,6);
+		gotoxy(9,1);
+		print(sel[z-1],12,6);
+		gotoxy(10,1);
+		printf("\e[4m");
+		print(sel[z],13,6);
+		gotoxy(11,1);
+		print(sel[z+1],12,6);
+		getinput();
+		if (zz&&keyp("w")&&(z>1)) zz=0,z--;
+		if (zz&&keyp("s")&&(z<3)) zz=0,z++;
+		if (keyp("b")) {wait(200); clrscr(); return;}
+		if (keyp("e"))
+		{
+			if (z!=3)
+			{
+				levelinfo(z); levelentry(z); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
+			}
+			else if (z==3)
+			{
+				wait(200); clrscr(); return;
+			}
+		}
+		#ifdef WIN
+		if ((GetKeyState(VK_RETURN)<0)||(GetKeyState(VK_SPACE)<0))
+		{
+			if (z!=3)
+			{
+				levelinfo(z); levelentry(z); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
+			}
+			else if (z==3)
+			{
+				wait(200); clrscr(); return;
+			}
+		}
+	    if (GetKeyState(VK_ESCAPE)<0) {wait(200); clrscr(); return;}
 		#endif
 	}
 }
@@ -251,11 +384,11 @@ void help()
 		gotoxy(6,1);
 		print("玩家1：",14,6);
 		gotoxy(7,1);
-		print("移动：wasd；疾跑：shift；捡起：e；丢下：q；攻击：tfgh",14,6);
+		print("移动：WASD 疾跑：LSHIFT 捡起：Y 丢下：R 攻击 TFGH",14,6);
 		gotoxy(8,1);
 		print("玩家2：",14,6);
 		gotoxy(9,1);
-		print("移动：ijkl",14,6);
+		print("移动：↑←↓→ 疾跑：RSHIFT 捡起：O 丢下：U 攻击 IJKL",14,6);
 		gotoxy(10,1);
 		print("界面说明：",14,6);
 		gotoxy(11,1);
@@ -281,10 +414,6 @@ void menu()
 	clrscr();
 	clock_t st=clock();
 	int zz=1;
-	char tips[10][75];  //提示信息
-	int tipn=2; //提示信息数
-	strcpy(tips[0],"      Tips:自由模式没有敌人？按c和方向键试试~");
-	strcpy(tips[1],"      Tips:嫌子弹不够？为什么不找开枪的人要呢~");
 	char sel[7][75];
 	strcpy(sel[0],"                                                      ");
 	strcpy(sel[1],"                      挑    战                        ");
@@ -317,11 +446,11 @@ void menu()
 		{
 			if (z==1)
 			{
-
+				challenge(); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
 			}
 			else if (z==2)
 			{
-				freelevel(); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
+				levelentry(0); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
 			}
 			else if (z==3)
 			{
@@ -341,11 +470,11 @@ void menu()
 		{
 			if (z==1)
 			{
-
+				challenge(); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
 			}
 			else if (z==2)
 			{
-				freelevel(); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
+				levelentry(0); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
 			}
 			else if (z==3)
 			{
@@ -364,6 +493,13 @@ void menu()
 	}
 }
 
+void tipsinit()
+{
+	tipn=2; //提示信息数
+	strcpy(tips[0],"      Tips:自由模式没有敌人？按c和方向键试试~");
+	strcpy(tips[1],"      Tips:嫌子弹不够？为什么不找开枪的人要呢~");
+}
+
 void main()
 {
 #ifdef WIN
@@ -371,6 +507,7 @@ void main()
 #endif
 	printf("\e[?25l");
 	srand((unsigned int)time(NULL));
+	tipsinit();
 	menu();
 	//test();
 	//level1();

@@ -122,7 +122,7 @@ void ai2(player *q)
 	
 	for (i=1;i<=pn;i++)  //找目标
 	{
-		if ((q==&p[i])||((p[i].id!=1)&&(p[i].id!=3))) continue;
+		if ((q==&p[i])||(p[i].team==q->team)) continue;
 		if (qdism(q,&p[i])<dmin)
 		{
 			dmin=qdism(q,&p[i]);
@@ -169,7 +169,7 @@ void ai3(player *q)
 	
 	for (i=1;i<=pn;i++)  //找目标
 	{
-		if ((q==&p[i])||(p[i].id!=2)) continue;
+		if ((q==&p[i])||(p[i].team==q->team)) continue;
 		if (qdism(q,&p[i])<dmin)
 		{
 			dmin=qdism(q,&p[i]);
