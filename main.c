@@ -1,4 +1,4 @@
-//#define WIN
+#define WIN
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,11 +14,7 @@
 #endif
  
 #include "stdinit.h"
- 
-#include "base.h"
- 
-#include "test.h"
- 
+
 #define MX 100
 #define MY 100
 #define OBJMAX 6666  //地图对象数量上限
@@ -29,13 +25,14 @@
 #define MT 100  //基础移动冷却时间，单位ms
 #define ANT 10  //子弹动态活动运动基础单位时间，单位ms
 #define BNT 300  //冲击波动态活动运动基础单位时间，单位ms
-#define DT 10  //绘制延迟，单位ms
+#define DT 1  //绘制延迟，单位ms
 #define PT 10  //物理计算单位时间，单位ms
 #define OT 1000  //氧气判定单位时间，单位ms
-#define SPT 5000  //地图刷新单位时间，单位ms
+#define BT 100  //击退延迟时间，单位ms
+//#define SPT 5000  //地图刷新单位时间，单位ms
  
-#define BUB 1.3  //子弹击退常数
-#define BLB 3.2  //冲击波击退常数
+#define BUB 1.3  //子弹击退常数(已失效)
+#define BLB 3.2  //手雷冲击波击退常数(已失效)
 #define PM 0.6  //物理引擎空间计算最小单位
 #define EK 1  //弹性碰撞系数
  
@@ -47,7 +44,7 @@
 #define WEAKMSG  //弱消息提醒开关
 //#define SCREENSHAKE  //屏幕抖动效果开关
 #define SHAKE 0.7  //屏幕抖动参数
- 
+
 block *map[MX+2][MY+2];
 int flor[MX+2][MY+2];
 block *iflor[MX+2][MY+2];
@@ -56,13 +53,19 @@ player *liv[MX+2][MY+2];
 player p[OBJMAX];
 int pn;  //玩家和ai数量
 int PS;  //玩家数量
+int ETD;  //敌人队友子弹伤害
+int SPT[7]={0,5000,20000,0,0,0,0};  //各关卡地图刷新单位时间，单位ms
 int fps,fpsf;
 clock_t fpst,dpst,ppst,opst,spst;
 clock_t stayt; //游戏坚持时间
 FILE *fp;
 char tips[10][75];  //提示信息
 int tipn; //提示信息数
- 
+
+#include "base.h"
+
+#include "test.h"
+
 #include "basic.h"
  
 void background()
@@ -153,7 +156,7 @@ void gameend(int level)
 			print(p[i].c,14,6); printf("\n");
 			print("  分数：",14,6);
 			int j,t=0;
-			t=(int)(((double)clock()-stayt)/CLOCKS_PER_SEC*1.5);
+			t=(int)(((double)clock()-stayt)/CLOCKS_PER_SEC*0.3);
 			for (j=1;j<=20;j++) t+=p[i].kill[j]*stp[j].score;
 			sum+=t;
 			printf("\e[0;37m\e[46m  %d\e[0m\n",t);
@@ -163,11 +166,50 @@ void gameend(int level)
 		print("      总分数：",14,6);
 		printf("\e[0;37m\e[46m  %d\e[0m\n",sum);
 		print("      评级：",14,6);
-		if (sum>=100)
+		if (sum>=130)
 		    print("王者归来!那个人又回来了!全服震惊!",2,6);
 		else if (sum>=80)
-		    print("一流的Stayer!令人惊艳的操作!",3,6);
+		    print("一流的Stayer!令人惊艳的操作!",4,6);
 		else if (sum>=60)
+		    print("还算合格的初体验!成长令人期待!",14,6);
+		else print("...不愧是您。再试亿次吧~",13,6);
+		print("\n\n  按下ESC或者B键返回",14,6);
+		while (1)
+		{
+			getinput();
+			if (keyp("b")) {clrscr(); return;}
+			#ifdef WIN
+			if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
+			#endif
+		}
+	}
+	else if (level==2)  //挑战2
+	{
+		gotoxy(3,1);
+		print("                      结    束                        \n",7,6);
+		print("  共存活了",14,6);
+		printf("\e[0;37m\e[46m %.2lf\e[0m",((double)clock()-stayt)/CLOCKS_PER_SEC);
+		print("s,Stayer!\n",14,6);
+		for (i=1;i<=PS;i++)
+		{
+			print(p[i].c,14,6); printf("\n");
+			print("  分数：",14,6);
+			int j,t=0;
+			t=(int)(((double)clock()-stayt)/CLOCKS_PER_SEC*0.3);
+			for (j=1;j<=20;j++) t+=p[i].kill[j]*stp[j].score;
+			sum+=t;
+			printf("\e[0;37m\e[46m  %d\e[0m\n",t);
+			printf("\n");
+		}
+		sum/=PS;
+		print("      总分数：",14,6);
+		printf("\e[0;37m\e[46m  %d\e[0m\n",sum);
+		print("      评级：",14,6);
+		if (sum>=600)
+		    print("王者归来!那个人又回来了!全服震惊!",2,6);
+		else if (sum>=300)
+		    print("一流的Stayer!令人惊艳的操作!",4,6);
+		else if (sum>=120)
 		    print("还算合格的初体验!成长令人期待!",14,6);
 		else print("...不愧是您。再试亿次吧~",13,6);
 		print("\n\n  按下ESC或者B键返回",14,6);
@@ -205,6 +247,37 @@ void levelinfo(int level)
 			print("  毕竟是小试牛刀所以没什么好说的啦",14,6);
 			gotoxy(8,1);
 			print("  证明自己的实力吧！New Stayer！",14,6);
+			gotoxy(9,1);
+			print("  提示:先四处跑跑去找把抢",14,6);
+			gotoxy(13,1);
+			print("  按下回车或者E键继续~",14,6);
+			getinput();
+			if (keyp("e")) {clrscr(); return;}
+			#ifdef WIN
+			if (GetKeyState(VK_RETURN)<0) {clrscr(); return;}
+			#endif
+		}	
+	}
+	if (level==2)  //挑战2
+	{
+		while (1)
+		{
+    		#ifndef WIN
+    		wait(20);
+    		inbufn=0;
+	    	#endif
+			gotoxy(3,1);
+			print("                    初 露 锋 芒                   ",7,6);
+			gotoxy(5,1);
+			print("      有了上一次的经验",14,6);
+			gotoxy(6,1);
+			print("  接下来你就要大干一场了",14,6);
+			gotoxy(7,1);
+			print("  找到并摧毁地图中的所有的敌人水晶吧~",14,6);
+			gotoxy(8,1);
+			print("  证明自己的实力吧！Naive Stayer！",14,6);
+			gotoxy(9,1);
+			print("  提示:看看界面下方的Tips吧~",14,6);
 			gotoxy(13,1);
 			print("  按下回车或者E键继续~",14,6);
 			getinput();
@@ -265,12 +338,12 @@ void levelentry(int level)
 			if (z==1)
 			{
 				PS=1; stiinit(); stbinit(); stpinit(); mapload(level); playerinit(1,level); gamescreen(1,level);
-				gameend(level); background();
+				gameend(level); wait(200); clrscr(); return;
 			}
 			else if (z==2)
 			{
 				PS=2; stiinit(); stbinit(); stpinit(); mapload(level); playerinit(2,level); gamescreen(2,level);
-				gameend(level); background();
+				gameend(level); wait(200); clrscr(); return;
 			}
 			else if (z==3)
 			{
@@ -282,13 +355,13 @@ void levelentry(int level)
 		{
 			if (z==1)
 			{
-				stiinit(); stbinit(); stpinit(); mapload(level); playerinit(1,level); gamescreen(1,level);
-				gameend(level); background();
+				PS=1; stiinit(); stbinit(); stpinit(); mapload(level); playerinit(1,level); gamescreen(1,level);
+				gameend(level); wait(200); clrscr(); return;
 			}
 			else if (z==2)
 			{
-				stiinit(); stbinit(); stpinit(); mapload(level); playerinit(2,level); gamescreen(2,level);
-				gameend(level); background();
+				PS=2; stiinit(); stbinit(); stpinit(); mapload(level); playerinit(2,level); gamescreen(2,level);
+				gameend(level); wait(200); clrscr(); return;
 			}
 			else if (z==3)
 			{

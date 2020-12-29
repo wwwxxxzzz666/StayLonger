@@ -6,7 +6,7 @@ void test()
     char ss[]="w";
     puts(ss);
     printf("%d&&%c&&&%c",strlen(ss),ss[0],ss[1]);
-#ifdef WIN
+#ifndef WIN
     while (1)
     {
         printf("%d\n",GetKeyState(ss[0]-32));

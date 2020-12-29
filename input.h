@@ -56,7 +56,7 @@ int keyp(char ss[])
 		if (!z)
 			return 0;
 	}
-/*	for (j = 0; j < l; j++)
+	for (j = 0; j < l; j++)
 	{
 		char c = ss[j];
 		for (i = 1; i <= inbufn; i++)
@@ -66,7 +66,7 @@ int keyp(char ss[])
 				inbufn--;
 				break;
 			}
-	}*/
+	}
 	return 1;
 }
 #endif

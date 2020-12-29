@@ -26,7 +26,12 @@ int qdism(player *p1,player *p2)  //切比雪夫距离投影分离量最小值
 {
 	return min(qdisx(p1,p2),qdisy(p1,p2));
 }
- 
+
+int dis(player *p1,player *p2)  //直线距离取整
+{
+	return (int)(sqrt((p1->x-p2->x)*(p1->x-p2->x)+(p1->y-p2->y)*(p1->y-p2->y)));
+}
+
 double getv(player *q)
 {
 	return (sqrt(q->vx*q->vx+q->vy*q->vy));
@@ -39,11 +44,12 @@ void movev(player *q,double xx,double yy)
 	q->vx+=xx; q->vy+=yy;
 }
  
-void move(player *q,double xx,double yy)
+void move(player *q,double xx,double yy,int ifog)
 {
 	if ((MT*CLOCKS_PER_SEC/1000)+q->mt>clock()) return;
 	q->mt=clock();
 	q->vx+=xx*q->spd; q->vy+=yy*q->spd;
+	if (ifog) q->og-=20+rand()%6;
 }
  
 void pickup(player *q)
@@ -80,8 +86,9 @@ void attack(player *pp,int xx,int yy)
 		if (liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->hp)
 			liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->own=pp;
 		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->hp-=pp->tol.dmg; //!!!
-		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->vy+=(abs(pp->vy)+pp->tol.blow)*EK*yy;
-		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->vx+=(abs(pp->vx)+pp->tol.blow)*EK*xx;
+		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->by+=(abs(pp->vy)+pp->tol.blow)*EK*yy;
+		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->bx+=(abs(pp->vx)+pp->tol.blow)*EK*xx;
+		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->bt=clock();
  
 #ifdef WEAKMSG
 		char ts[34];
@@ -94,11 +101,12 @@ void attack(player *pp,int xx,int yy)
 #endif
  
 	}
-	if (pp->tol.id==1)  //小枪
+	if ((pp->tol.id==1)||(pp->tol.id==4)||(pp->tol.id==5))  //小枪&冲锋枪&机枪
 	{
 		pp->tol.ava--;
 		pn++;
 		p[pn]=stp[21];p[pn].sx=xx;p[pn].sy=yy;p[pn].eqp+=pp->tol.dmg;
+		p[pn].blow=pp->tol.blow;
 		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
 		p[pn].own=pp;
 	}
@@ -107,6 +115,7 @@ void attack(player *pp,int xx,int yy)
 		pp->tol.ava--;
 		pn++;
 		p[pn]=stp[4]; p[pn].vx=pp->vx+0.8*xx; p[pn].vy=pp->vy+0.8*yy; p[pn].eqp+=pp->tol.dmg;
+		p[pn].blow=pp->tol.blow;
 		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
 		p[pn].own=pp;
 	}
@@ -139,22 +148,22 @@ void ai2(player *q)
 		int tt=rand()%3-1;
 		if (qdisx(q,tar)==0)
 		{
-			move(q,t,sgny(q,tar)+tt);
+			move(q,t,sgny(q,tar)+tt,0);
 		}
 		else
 		{
-			move(q,sgnx(q,tar)+tt,t);
+			move(q,sgnx(q,tar)+tt,t,0);
 		}
 	}
 	else
 	{
 		if (qdisx(q,tar)<=qdisy(q,tar))
 		{
-			move(q,sgnx(q,tar),0);
+			move(q,sgnx(q,tar),0,0);
 		}
 		else
 		{
-			move(q,0,sgny(q,tar));
+			move(q,0,sgny(q,tar),0);
 		}
 	}
 	
@@ -186,22 +195,22 @@ void ai3(player *q)
 		int tt=rand()%3-1;
 		if (qdisx(q,tar)==0)
 		{
-			move(q,t,sgny(q,tar)+tt);
+			move(q,t,sgny(q,tar)+tt,0);
 		}
 		else
 		{
-			move(q,sgnx(q,tar)+tt,t);
+			move(q,sgnx(q,tar)+tt,t,0);
 		}
 	}
 	else
 	{
 		if (qdisx(q,tar)<=qdisy(q,tar))
 		{
-			move(q,sgnx(q,tar),0);
+			move(q,sgnx(q,tar),0,0);
 		}
 		else
 		{
-			move(q,0,sgny(q,tar));
+			move(q,0,sgny(q,tar),0);
 		}
 	}
 	

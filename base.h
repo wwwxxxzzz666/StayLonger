@@ -107,14 +107,28 @@ void print(char *ss,int fc,int bc)
  
 void livprint(player *q,int bc)
 {
-    if (q->hp>=stp[q->id].hp*0.5)
-        print(stb[q->id+20].c,15,bc);
-    else if (q->hp>=stp[q->id].hp*0.2)
-        print(stb[q->id+20].c,13,bc);
-    else if (q->hp>0)
-        print(stb[q->id+20].c,2,bc);
+    if (q->bt+BT*CLOCKS_PER_SEC/1000<=clock())
+    {
+        if (q->hp>=stp[q->id].hp*0.5)
+            print(stb[q->id+20].c,15,bc);
+        else if (q->hp>=stp[q->id].hp*0.2)
+            print(stb[q->id+20].c,13,bc);
+        else if (q->hp>0)
+            print(stb[q->id+20].c,2,bc);
+        else
+            print(stb[q->id+20].c,7,bc);
+    }
     else
-        print(stb[q->id+20].c,7,bc);
+    {
+        if (q->hp>=stp[q->id].hp*0.5)
+            print(stb[q->id+20].c,15,1);
+        else if (q->hp>=stp[q->id].hp*0.2)
+            print(stb[q->id+20].c,13,1);
+        else if (q->hp>0)
+            print(stb[q->id+20].c,2,1);
+        else
+            print(stb[q->id+20].c,7,1);
+    }
 }
  
 #else
@@ -182,17 +196,31 @@ void print(char *ss,int fc,int bc)
 {
 	printf("%s\e[4%dm%2s\e[0m",col[fc],bc,ss);
 }
- 
+
 void livprint(player *q,int bc)
 {
-    if (q->hp>=stp[q->id].hp*0.5)
-        print(stb[q->id+20].c,15,bc);
-    else if (q->hp>=stp[q->id].hp*0.2)
-        print(stb[q->id+20].c,13,bc);
-    else if (q->hp>0)
-        print(stb[q->id+20].c,2,bc);
+    if (q->bt+BT*CLOCKS_PER_SEC/1000<=clock())
+    {
+        if (q->hp>=stp[q->id].hp*0.5)
+            print(stb[q->id+20].c,15,bc);
+        else if (q->hp>=stp[q->id].hp*0.2)
+            print(stb[q->id+20].c,13,bc);
+        else if (q->hp>0)
+            print(stb[q->id+20].c,2,bc);
+        else
+            print(stb[q->id+20].c,7,bc);
+    }
     else
-        print(stb[q->id+20].c,7,bc);
+    {
+        if (q->hp>=stp[q->id].hp*0.5)
+            print(stb[q->id+20].c,15,1);
+        else if (q->hp>=stp[q->id].hp*0.2)
+            print(stb[q->id+20].c,13,1);
+        else if (q->hp>0)
+            print(stb[q->id+20].c,2,1);
+        else
+            print(stb[q->id+20].c,7,1);
+    }
 }
  
 #endif
