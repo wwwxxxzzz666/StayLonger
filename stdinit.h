@@ -76,10 +76,10 @@ void stpinit()
 	strcpy(stp[0].c,"测试");
 	stp[0].sx=stp[0].sy=1;
 	strcpy(stp[1].c,"玩家");
-	stp[1].hp=stp[1].fd=stp[1].wt=stp[1].og=10;
+	stp[1].hp=stp[1].fd=stp[1].wt=stp[1].og=1000;
 	stp[1].tol=sti[0];
 	stp[1].eqp=0;
-	stp[1].team=0;
+	stp[1].team=1;
 	stp[1].spd=0.333;
 	stp[1].miu=0.33;
 	stp[1].score=-50;
@@ -89,7 +89,7 @@ void stpinit()
 	stp[2].tol.ava=50;
 	stp[2].tol.ft=500;
 	stp[2].eqp=0;
-	stp[2].team=1;
+	stp[2].team=0;
 	stp[2].spd=0.3;
 	stp[2].miu=0.33;
 	stp[2].score=15;
@@ -99,7 +99,7 @@ void stpinit()
 	stp[3].tol.ava=70;
 	stp[3].tol.ft=300;
 	stp[3].eqp=0;
-	stp[3].team=0;
+	stp[3].team=1;
 	stp[3].spd=0.3;
 	stp[3].miu=0.33;
 	stp[3].score=-10;
@@ -107,16 +107,19 @@ void stpinit()
 	stp[4].hp=10;
 	stp[4].tol=sti[0];
 	stp[4].eqp=5;  //暂定伤害
+	stp[4].team=-1;
 	stp[4].spd=0;
 	stp[4].miu=0.95;
 	strcpy(stp[21].c,"子弹");
 	stp[21].hp=20;
 	stp[21].tol=sti[0];
 	stp[21].eqp=8;  //暂定伤害
+	stp[21].team=-1;
 	stp[21].spd=0.7;
 	strcpy(stp[22].c,"冲击波");
 	stp[22].hp=3;
 	stp[22].tol=sti[0];
 	stp[22].eqp=20;  //暂定伤害
+	stp[22].team=-1;
 	stp[22].spd=0;
 }

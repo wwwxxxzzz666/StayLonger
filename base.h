@@ -104,7 +104,7 @@ void print(char *ss,int fc,int bc)
 {
 	printf("%s\e[4%dm%2s\e[0m",col[fc],bc,ss);
 }
-
+ 
 void livprint(player *q,int bc)
 {
     if (q->hp>=stp[q->id].hp*0.5)
@@ -116,7 +116,7 @@ void livprint(player *q,int bc)
     else
         print(stb[q->id+20].c,7,bc);
 }
-
+ 
 #else
 /*
 void gotoxy(int x,int y)
@@ -182,7 +182,7 @@ void print(char *ss,int fc,int bc)
 {
 	printf("%s\e[4%dm%2s\e[0m",col[fc],bc,ss);
 }
-
+ 
 void livprint(player *q,int bc)
 {
     if (q->hp>=stp[q->id].hp*0.5)
@@ -194,5 +194,5 @@ void livprint(player *q,int bc)
     else
         print(stb[q->id+20].c,7,bc);
 }
-
+ 
 #endif

@@ -26,40 +26,40 @@ int qdism(player *p1,player *p2)  //切比雪夫距离投影分离量最小值
 {
 	return min(qdisx(p1,p2),qdisy(p1,p2));
 }
-
+ 
 double getv(player *q)
 {
 	return (sqrt(q->vx*q->vx+q->vy*q->vy));
 }
-
+ 
 void movev(player *q,double xx,double yy)
 {
 	if ((MT*CLOCKS_PER_SEC/1000)+q->mt>clock()) return;
 	q->mt=clock();
 	q->vx+=xx; q->vy+=yy;
 }
-
+ 
 void move(player *q,double xx,double yy)
 {
 	if ((MT*CLOCKS_PER_SEC/1000)+q->mt>clock()) return;
 	q->mt=clock();
 	q->vx+=xx*q->spd; q->vy+=yy*q->spd;
 }
-
+ 
 void pickup(player *q)
 {
 	q->tol=imap[(int)(q->x)][(int)(q->y)];
 	iflor[(int)(q->x)][(int)(q->y)]=&stb[1];
 	imap[(int)(q->x)][(int)(q->y)]=sti[0];
 }
-
+ 
 void drop(player *q)
 {
 	iflor[(int)(q->x)][(int)(q->y)]=&stb[q->tol.id+70];
 	imap[(int)(q->x)][(int)(q->y)]=q->tol;
 	q->tol=sti[0];
 }
-
+ 
 void ammocheck(player *q)
 {
 	if (q->tol.ava<=0)
@@ -67,7 +67,7 @@ void ammocheck(player *q)
 		q->tol=sti[0];
 	}
 }
-
+ 
 void attack(player *pp,int xx,int yy)
 {
 	if ((pp->tol.ft*CLOCKS_PER_SEC/1000)+pp->at>clock()) return;
@@ -82,7 +82,7 @@ void attack(player *pp,int xx,int yy)
 		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->hp-=pp->tol.dmg; //!!!
 		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->vy+=(abs(pp->vy)+pp->tol.blow)*EK*yy;
 		liv[(int)(pp->x)+xx][(int)(pp->y)+yy]->vx+=(abs(pp->vx)+pp->tol.blow)*EK*xx;
-
+ 
 #ifdef WEAKMSG
 		char ts[34];
 		strcpy(ts,"你打了");
@@ -92,7 +92,7 @@ void attack(player *pp,int xx,int yy)
 		strcat(ts,"打了你");
 		addmsg(liv[(int)(pp->x)+xx][(int)(pp->y)+yy],ts);
 #endif
-
+ 
 	}
 	if (pp->tol.id==1)  //小枪
 	{
@@ -112,7 +112,7 @@ void attack(player *pp,int xx,int yy)
 	}
 	ammocheck(pp);
 }
-
+ 
 void ai2(player *q)
 {
 	player *tar;
@@ -122,16 +122,16 @@ void ai2(player *q)
 	
 	for (i=1;i<=pn;i++)  //找目标
 	{
-		if ((q==&p[i])||(p[i].team==q->team)) continue;
+		if ((q==&p[i])||(p[i].team!=1)) continue;
 		if (qdism(q,&p[i])<dmin)
 		{
 			dmin=qdism(q,&p[i]);
 			tar=&p[i];
 		}
 	}
-
+ 
 	if (tar==&p[0]) return;
-
+ 
 	if (qdism(q,tar)==0)  //行为
 	{
 		attack(q,sgnx(q,tar),sgny(q,tar));
@@ -159,7 +159,7 @@ void ai2(player *q)
 	}
 	
 }
-
+ 
 void ai3(player *q)
 {
 	player *tar;
@@ -169,16 +169,16 @@ void ai3(player *q)
 	
 	for (i=1;i<=pn;i++)  //找目标
 	{
-		if ((q==&p[i])||(p[i].team==q->team)) continue;
+		if ((q==&p[i])||(p[i].team!=0)) continue;
 		if (qdism(q,&p[i])<dmin)
 		{
 			dmin=qdism(q,&p[i]);
 			tar=&p[i];
 		}
 	}
-
+ 
 	if (tar==&p[0]) return;
-
+ 
 	if (qdism(q,tar)==0)  //行为
 	{
 		attack(q,sgnx(q,tar),sgny(q,tar));

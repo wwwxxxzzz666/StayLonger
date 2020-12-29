@@ -106,7 +106,7 @@ void mapload(int level)
 		liv[0][i]=liv[MX+1][i]=liv[i][0]=liv[i][MY+1]=&p[0];	
 	}
 }
-
+ 
 int endcheck()
 {
     int i;
@@ -116,7 +116,7 @@ int endcheck()
     }
     return 1;
 }
-
+ 
 void spawn(int id,double xx,double yy)  
 {
 	pn++;
@@ -129,13 +129,13 @@ void spawn(int id,double xx,double yy)
 	p[pn].qut=0;
 	p[pn].own=&p[pn];
 }
-
+ 
 void addmsg(player *q,char *ss)
 {
 	strcpy(q->msg[2],q->msg[1]);
 	strcpy(q->msg[1],ss);
 }
-
+ 
 #include "input.h"
  
 void draw(player *q,int xx,int yy)
@@ -183,16 +183,16 @@ void draw(player *q,int xx,int yy)
 	printf("      ");
 	gotoxy(xx+15,yy);
 	printf("%d %d",inbufn,pn);
-	printf(" fps:%d  %.2lf",fps,q->y);
+	printf(" fps:%d  %.2lf",fps,q->x);
 }
-
+ 
 int ifoutmap(player *q)
 {
 	if (q->x<1) return 1;if (q->x>MX+1) return 1;
 	if (q->y<1) return 1;if (q->y>MY+1) return 1;
 	return 0;	
 }
-
+ 
 void backinmap(player *q)
 {
 	if (q->x+q->vx<1)
@@ -212,7 +212,7 @@ void backinmap(player *q)
 		q->y=MY; q->vy*=-EK;
 	}
 }
-
+ 
 void vlimit(player *q)
 {
 	if ((q->id<=20)&&(q->vx>VMAX)) q->vx=VMAX;
@@ -220,7 +220,7 @@ void vlimit(player *q)
 	if ((q->id<=20)&&(q->vy>VMAX)) q->vy=VMAX;
 	if ((q->id<=20)&&(q->vy<-VMAX)) q->vy=-VMAX;
 }
-
+ 
 void maprefresh()
 {
 	int i,j,t;
@@ -249,11 +249,11 @@ void maprefresh()
 	for (i=1;i<=pn;i++)
 	{
 		if (p[i].id>20) continue;
-
+ 
 		#ifdef SCREENSHAKE
 		p[i].x-=SHAKE*p[i].vx; p[i].y-=SHAKE*p[i].vy;
 		#endif
-
+ 
 		if (((int)(p[i].x)-5>=1)&&((int)(p[i].x)+5<=MX))
 			p[i].sx=(int)(p[i].x)-5;
 		else if ((int)(p[i].x)-5<1)
@@ -264,15 +264,15 @@ void maprefresh()
 		else if ((int)(p[i].y)-5<1)
 			p[i].sy=1;
 		else p[i].sy=MY-10;
-
+ 
 		#ifdef SCREENSHAKE
 		p[i].x+=SHAKE*p[i].vx; p[i].y+=SHAKE*p[i].vy;
 		#endif
 	}
 }
-
+ 
 #include "gamecore.h"
-
+ 
 void physics()
 {
 	int i;
@@ -290,14 +290,14 @@ void physics()
 			pp=&p[i];
 			if ((liv[(int)(pp->x+pp->vx)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y+pp->vy)]->csh==0))
 			{
-
+ 
 				if ((p[i].id==4)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]!=&p[i]))  //手雷特判
 				{
 					if (!liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->id) continue;
 					if (!liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp)
 						liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->own=p[i].own;
 					liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp-=(int)(p[i].eqp*(getv(&p[i])/9.0));
-
+ 
 					#ifdef WEAKMSG
 					char ts[34];
 					strcpy(ts,"你打了");
@@ -308,7 +308,7 @@ void physics()
 					addmsg(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)],ts);
 					#endif
 				}
-
+ 
 				if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0)&&(liv[(int)(pp->x+pp->vx)][(int)(pp->y)]!=pp)&&(map[(int)(pp->x+pp->vx)][(int)(pp->y)]->csh==0))
 				{
 					liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=tt*pp->vy*EK;
@@ -336,7 +336,7 @@ void physics()
 		p[i].vx*=p[i].miu; p[i].vy*=p[i].miu;
 	}
 }
-
+ 
 void oxygen()  //氧气和其他生物事件判定
 {
 	int i;
@@ -361,17 +361,17 @@ void oxygen()  //氧气和其他生物事件判定
 		}
 	}
 }
-
+ 
 void mapspawn(int level)  //地图自动大刷新
 {
 	if (level==1)  //挑战1
 	{
 		int i;
-		for (i=1;i<=((clock()-stayt)/1000)/10;i++)
+		for (i=1;i<=(((double)clock()-stayt)/CLOCKS_PER_SEC)/10;i++)
 			spawn(2,rand()%60+21,rand()%60+21);
 	}
 }
-
+ 
 void playerlogic()
 {
 	int i;
@@ -379,12 +379,12 @@ void playerlogic()
 	{
 		if (p[i].id<=20) backinmap(&p[i]);
 		vlimit(&p[i]);
-
+ 
 		if ((p[i].hp<=0)&&(p[i].id==1))  //玩家死亡
 		{
 			if (p[i].tol.id&&(iflor[(int)(p[i].x)][(int)(p[i].y)]->id==1)) drop(&p[i]);
 			p[i].hp=-1958;
-
+ 
 			if (!p[i].qut)
 			{
 				p[i].qut=1;
@@ -405,7 +405,7 @@ void playerlogic()
 				for (j=1;j<=pn;j++)
 					if ((p[j].id==1)&&(j!=i)&&(&p[j]!=p[i].own)) addmsg(&p[j],ts);
 			}
-
+ 
 			continue;
 		}
 		if ((p[i].hp<=0)&&(p[i].id==4))  //手雷死亡
@@ -419,7 +419,7 @@ void playerlogic()
 			p[pn].vx=1; p[pn].vy=0;
 			spawn(22,p[i].x,p[i].y+1);
 			p[pn].vx=0; p[pn].vy=1;
-
+ 
 			spawn(22,p[i].x-1,p[i].y-1);
 			p[pn].vx=-1; p[pn].vy=-1;
 			spawn(22,p[i].x-1,p[i].y+1);
@@ -429,16 +429,16 @@ void playerlogic()
 			spawn(22,p[i].x+1,p[i].y+1);
 			p[pn].vx=1; p[pn].vy=1;
 			p[i]=p[pn]; p[pn].id=404; pn--;  //?
-
+ 
 #ifdef WEAKMSG
 				char ts[34];
 				strcpy(ts,"一颗手雷爆炸了");
 				int j;
 				for (j=1;j<=pn;j++)
 					if (p[j].id==1) addmsg(&p[j],ts);
-
+ 
 #endif
-
+ 
 			continue;
 		}
 		if (p[i].hp<=0)  //其他死亡
@@ -458,26 +458,26 @@ void playerlogic()
 				strcat(ts,"！");
 				addmsg(p[i].own,ts);
 			}
-
+ 
 			p[i]=p[pn]; p[pn].id=404; pn--;
 			continue;
 		}
-
+ 
 		if (p[i].id==1)  //玩家
 		{
-
+ 
 		}
-
+ 
 		if (p[i].id==2)  //敌人
 		{
 			ai2(&p[i]);
 		}
-
+ 
 		if (p[i].id==3)  //护卫
 		{
 			ai3(&p[i]);
 		}
-
+ 
 		if (p[i].id==21)  //子弹
 		{
 			if (ifoutmap(&p[i]))
@@ -494,7 +494,7 @@ void playerlogic()
 				liv[(int)p[i].x][(int)p[i].y]->hp-=p[i].eqp;
 				liv[(int)p[i].x][(int)p[i].y]->vy+=BUB*p[i].sy;
 				liv[(int)p[i].x][(int)p[i].y]->vx+=BUB*p[i].sx;
-
+ 
 #ifdef WEAKMSG
 				char ts[34];
 				strcpy(ts,"你打了");
@@ -504,14 +504,14 @@ void playerlogic()
 				strcat(ts,"打了你");
 				addmsg(liv[(int)p[i].x][(int)p[i].y],ts);
 #endif
-
+ 
 				continue;
 			}
 			if ((ANT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
 			p[i].mt=clock();
 			p[i].x+=p[i].spd*p[i].sx; p[i].y+=p[i].spd*p[i].sy;
 		}
-
+ 
 		if (p[i].id==4)  //手雷
 		{
 			if (ifoutmap(&p[i]))
@@ -521,7 +521,7 @@ void playerlogic()
 			}
 			continue;
 		}
-
+ 
 		if (p[i].id==22)  //冲击波???
 		{
 			if (ifoutmap(&p[i]))
@@ -538,7 +538,7 @@ void playerlogic()
 				liv[(int)p[i].x][(int)p[i].y]->hp-=p[i].eqp;
 				liv[(int)p[i].x][(int)p[i].y]->vy+=BLB*p[i].vy;
 				liv[(int)p[i].x][(int)p[i].y]->vx+=BLB*p[i].vx;
-
+ 
 #ifdef WEAKMSG
 				char ts[34];
 				strcpy(ts,"你打了");
@@ -548,7 +548,7 @@ void playerlogic()
 				strcat(ts,"打了你");
 				addmsg(liv[(int)p[i].x][(int)p[i].y],ts);
 #endif
-
+ 
 				continue;
 			}
 			if ((BNT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
@@ -594,24 +594,24 @@ void controldbg()
 }
  
 clock_t st=0;
- 
+int z=0;  //???
+  
 void control1(player *q,int *exitflag)
 {
 	if (q->qut==1) return;
-
-	int z=0;  //???
+ 
 	if ((MT*CLOCKS_PER_SEC/1000)+st<=clock())
 	{
 		z=1; st=clock();
 	}
-
+ 
 #ifdef WIN
 	if ((keyp("w"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0),q->og-=2+rand()%6;
 	if ((keyp("a"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3),q->og-=2+rand()%6;
 	if ((keyp("s"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,3,0),q->og-=2+rand()%6;
 	if ((keyp("d"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,0,3),q->og-=2+rand()%6;
 #endif
-
+ 
 	if (keyp("w")&&(keyp("a"))) move(q,-sqrt(2)/2,-sqrt(2)/2);
 	if (keyp("w")&&(keyp("d"))) move(q,-sqrt(2)/2,sqrt(2)/2);
 	if (keyp("s")&&(keyp("a"))) move(q,sqrt(2)/2,-sqrt(2)/2);
@@ -632,9 +632,12 @@ void control1(player *q,int *exitflag)
 	if (keyp("f")) attack(q,0,-1);
 	if (keyp("g")) attack(q,1,0);
 	if (keyp("h")) attack(q,0,1);
+	if (z&&keyp("M")) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if (z&&keyp("D")) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (keyp("E")) *exitflag=1;
     #ifdef WIN
-	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21);
-	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21);
+	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
     if (GetKeyState(VK_ESCAPE)<0) *exitflag=1;
     #endif
 }
@@ -647,19 +650,18 @@ void control2(player *q,int *exitflag)
 	if (keyp("k")) move(q,1,0);
 	if (keyp("l")) move(q,0,1);*/
 	if (q->qut==1) return;
-
-	int z=0;  //???
+ 
 	if ((MT*CLOCKS_PER_SEC/1000)+st<=clock())
 	{
 		z=1; st=clock();
 	}
-
+ 
 #ifdef WIN
 	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0),q->og-=2+rand()%6;
 	if ((GetKeyState(VK_LEFT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3),q->og-=2+rand()%6;
 	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,3,0),q->og-=2+rand()%6;
 	if ((GetKeyState(VK_RIGHT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,3),q->og-=2+rand()%6;
-
+ 
 	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_LEFT)<0)) move(q,-sqrt(2)/2,-sqrt(2)/2);
 	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RIGHT)<0)) move(q,-sqrt(2)/2,sqrt(2)/2);
 	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_LEFT)<0)) move(q,sqrt(2)/2,-sqrt(2)/2);
@@ -681,9 +683,12 @@ void control2(player *q,int *exitflag)
 	if (keyp("j")) attack(q,0,-1);
 	if (keyp("k")) attack(q,1,0);
 	if (keyp("l")) attack(q,0,1);
+	if (z&&keyp("M")) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if (z&&keyp("D")) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (keyp("E")) *exitflag=1;
     #ifdef WIN
-	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21);
-	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21);
+	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
     if (GetKeyState(VK_ESCAPE)<0) *exitflag=1;
     #endif
 }
@@ -696,46 +701,47 @@ void gamescreen(int playern,int level)
     int zz=0;  //退出标记
 	while (1)
 	{
-
+ 
 		playerlogic();
 			
 		maprefresh();
-
+ 
 		if (fpst+1000*CLOCKS_PER_SEC/1000<=clock())
 		{
 			fps=fpsf; fpsf=0; fpst=clock();
 			inbufn=0;
 		}
-
-		if ((level!=0)&&(spst+ST*CLOCKS_PER_SEC/1000<=clock()))
+ 
+		if ((level!=0)&&(spst+SPT*CLOCKS_PER_SEC/1000<=clock()))
 		{
 			spst=clock();
 			mapspawn(level);
 		}
-
+ 
 		if (ppst+PT*CLOCKS_PER_SEC/1000<=clock())
 		{
 			ppst=clock();
 			physics();
 		}
-
+ 
 		if (opst+OT*CLOCKS_PER_SEC/1000<=clock())
 		{
 			opst=clock();
 			oxygen();
 		}
-
+ 
 		if (dpst+DT*CLOCKS_PER_SEC/1000<=clock())
 		{
 			dpst=clock(); fpsf++;
+			inbufn=0;
 			
 			draw(&p[1],1,1);
             if (playern==2) draw(&p[2],1,23);
-
+ 
             gotoxy(1,45);
             print("STAYED",0,0);
             gotoxy(2,45);
-            printf("%.2lfs",(clock()-stayt)/1000.0);
+            printf("%.2lfs",((double)clock()-stayt)/CLOCKS_PER_SEC);
 		}
 		getinput();
 		
@@ -744,7 +750,7 @@ void gamescreen(int playern,int level)
 		if (playern==2) control2(&p[2],&zz);
 		
         if (endcheck()) zz=1;
-
+ 
 		inputdbg();
 		gotoxy(1,1);
         if (zz) return;
