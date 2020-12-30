@@ -220,7 +220,7 @@ void pause(int *exitflag)
 	printf("\e[0;37m\e[46m %.2lf\e[0m",((double)clock()-stayt)/CLOCKS_PER_SEC);
 	print("s,Stayer!\n",14,6);
 	print("\n  按下ESC或者B键返回游戏\n",14,6);
-	print("  按下回车或者E键推出游戏",14,6);
+	print("  按下回车或者E键退出游戏",14,6);
 	while (1)
 	{
 
@@ -556,8 +556,8 @@ void mapspawn(int level)  //地图自动大刷新
 		int tn=0;int t=0;
 		for (j=1;j<=pn;j++)
 		{
-			if (p[i].id==24) tn++;
-			if (p[i].id==2) t++;
+			if (p[j].id==24) tn++;
+			if (p[j].id==2) t++;
 		}
 		for (i=1;i<=3-tn+1-t;i++)
 		{

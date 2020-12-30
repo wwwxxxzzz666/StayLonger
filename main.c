@@ -16,7 +16,7 @@
 #include "stdinit.h"
 
 #define BIGKEYBOARD  //是否是大键盘
-#define DEBUG //是否显示DEBUG
+//#define DEBUG //是否显示DEBUG
 
 #define MX 100
 #define MY 100
@@ -248,7 +248,7 @@ void levelinfo(int level)
 			gotoxy(3,1);
 			print("                    小 试 牛 刀                  ",7,6);
 			gotoxy(5,1);
-			print("      作为刚刚出道的新Stayer",14,6);
+			print("  作为刚刚出道的新Stayer",14,6);
 			gotoxy(6,1);
 			print("  你接下来将要在一个有限的空间里尽可能活得更久",14,6);
 			gotoxy(7,1);
@@ -277,7 +277,7 @@ void levelinfo(int level)
 			gotoxy(3,1);
 			print("                    初 露 锋 芒                   ",7,6);
 			gotoxy(5,1);
-			print("      有了上一次的经验",14,6);
+			print("  有了上一次的经验",14,6);
 			gotoxy(6,1);
 			print("  接下来你就要大干一场了",14,6);
 			gotoxy(7,1);
@@ -628,7 +628,7 @@ void tipsinit()
 	strcpy(tips[4],"      Tips:温馨提示:不要在黑暗水晶附近聚集敌人~");
 	strcpy(tips[5],"      Tips:据说有一把刀能够轻松乱杀一切~");
 }
- 
+
 void main()
 {
 #ifdef WIN
