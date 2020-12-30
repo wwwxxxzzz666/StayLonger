@@ -24,7 +24,7 @@ typedef struct player{
 	struct player *own;
 	char c[17];
 	char msg[3][34];
-	int kill[21];  //击杀数
+	int kill[31];  //击杀数
 	int score;  //分数
 }player;
  
@@ -62,8 +62,9 @@ void stbinit()  //物块
 	strcpy(stb[41].c,"ヽ");stb[41].fc=15;stb[41].csh=1;  //子弹
 	strcpy(stb[42].c,"▓");stb[42].fc=15;stb[42].csh=1;  //冲击波
 	strcpy(stb[43].c,"█");stb[43].fc=15;stb[43].csh=0;  //墙壁
-	strcpy(stb[44].c,"※");stb[44].fc=11;stb[44].csh=0;  //敌人水晶
+	strcpy(stb[44].c,"※");stb[44].fc=11;stb[44].csh=0;  //黑暗水晶
 	strcpy(stb[45].c,"▓");stb[45].fc=15;stb[45].csh=1;  //剑气
+	strcpy(stb[46].c,"★");stb[46].fc=5;stb[46].csh=0;  //神圣水晶
 	strcpy(stb[71].c,"ヶ");stb[71].fc=13; //小枪
 	strcpy(stb[72].c,"ゥ");stb[72].fc=13; //手雷
 	strcpy(stb[73].c,"く");stb[73].fc=13; //球棒
@@ -128,6 +129,7 @@ void stpinit()  //生物
 	stp[4].team=-1;
 	stp[4].spd=0;
 	stp[4].miu=0.95;
+	stp[4].score=0;
 	strcpy(stp[5].c,"箱子");
 	stp[5].hp=50;
 	stp[5].tol=sti[0];
@@ -135,13 +137,14 @@ void stpinit()  //生物
 	stp[5].team=-1;
 	stp[5].spd=0;
 	stp[5].miu=0.50;
-	stp[3].score=10;
+	stp[5].score=10;
 	strcpy(stp[21].c,"子弹");
 	stp[21].hp=20;
 	stp[21].tol=sti[0];
 	stp[21].eqp=8;  //暂定伤害
 	stp[21].team=-1;
 	stp[21].spd=0.7;
+	stp[21].score=0;
 	strcpy(stp[22].c,"冲击波");
 	stp[22].hp=3;
 	stp[22].tol=sti[0];
@@ -149,13 +152,15 @@ void stpinit()  //生物
 	stp[22].team=-1;
 	stp[22].spd=0;
 	stp[22].blow=0.3;
+	stp[22].score=0;
 	strcpy(stp[23].c,"墙壁");
 	stp[23].hp=66666666;
 	stp[23].tol=sti[0];
 	stp[23].eqp=0;
 	stp[23].team=-1;
 	stp[23].spd=0;
-	strcpy(stp[24].c,"敌人水晶");
+	stp[23].score=0;
+	strcpy(stp[24].c,"黑暗水晶");
 	stp[24].hp=300;
 	stp[24].tol=sti[0];
 	stp[24].eqp=20;  //暂定爆炸伤害
@@ -169,5 +174,14 @@ void stpinit()  //生物
 	stp[25].eqp=10;  //暂定伤害
 	stp[25].team=-1;
 	stp[25].spd=0;
+	stp[25].score=0;
 	stp[25].blow=0.6;  //默认击退
+	strcpy(stp[26].c,"神圣水晶");
+	stp[26].hp=300;
+	stp[26].tol=sti[0];
+	stp[26].eqp=-60;  //暂定爆炸伤害
+	stp[26].team=1;
+	stp[26].spd=0;
+	stp[26].score=-200;
+	stp[26].blow=3.2;
 }

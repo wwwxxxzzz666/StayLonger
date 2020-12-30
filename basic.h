@@ -47,6 +47,7 @@ void playerinit(int playern,int level)
 		spawn(5,15,15);
 		spawn(23,20,20);
 		spawn(24,25,25);
+		spawn(26,5,5);
 	}
 	else if (level==1)  //挑战1
 	{
@@ -125,8 +126,55 @@ void playerinit(int playern,int level)
 		spawn(5,80,rand()%60+21);
 		spawn(5,80,rand()%60+21);
 	}
+	else if (level==3)  //挑战3
+	{
+		int i;
+		ETD=1;
+		pn=playern;
+		//p[0].id=0;p[0].sx=p[0].sy=1;
+		p[0]=stp[0];
+		for (i=1;i<=playern;i++)
+		{
+			p[i]=stp[1];
+			p[i].at=p[i].mt=p[i].ot=p[i].bt=p[pn].swt=0;
+			p[i].sx=p[i].sy=1;
+			p[i].vx=p[i].vy=0;
+			p[i].qut=0;
+			p[i].own=&p[i];
+			strcpy(p[i].msg[1],"~~");
+			strcpy(p[i].msg[2],"~~");
+			int j;
+			for (j=0;j<=20;j++)
+			{
+				p[i].kill[j]=0;
+			}
+		}
+		p[1].x=p[1].y=21;
+		strcpy(p[1].c,"玩家1");
+		if (playern==2)
+		{
+			p[2].x=p[2].y=19;
+			strcpy(p[2].c,"玩家2");
+		}
+		spawn(26,20,20);
+		spawn(24,rand()%20+51,rand()%20+51);
+		spawn(24,rand()%20+51,rand()%20+51);
+		spawn(24,rand()%20+51,rand()%20+51);
+		spawn(5,rand()%60+21,20);
+		spawn(5,rand()%60+21,20);
+		spawn(5,rand()%60+21,20);
+		spawn(5,20,rand()%60+21);
+		spawn(5,20,rand()%60+21);
+		spawn(5,20,rand()%60+21);
+		spawn(5,rand()%60+21,80);
+		spawn(5,rand()%60+21,80);
+		spawn(5,rand()%60+21,80);
+		spawn(5,80,rand()%60+21);
+		spawn(5,80,rand()%60+21);
+		spawn(5,80,rand()%60+21);
+	}
 }
- 
+
 void mapload(int level)
 {
 	int i,j;
@@ -192,6 +240,23 @@ void mapload(int level)
 		iflor[30][30]=iflor[70][70]=&stb[71];
 		imap[30][30]=imap[70][80]=sti[1];
 	}
+	else if (level==3)  //挑战3
+	{
+		for (i=1;i<=MX;i++)
+			for (j=1;j<=MY;j++)
+			{
+				int t=rand()%6+1;
+				flor[i][j]=t;
+				map[i][j]=&stb[1];
+				iflor[i][j]=&stb[1];
+				liv[i][j]=&p[0];
+			}
+			
+		iflor[17][23]=iflor[23][17]=&stb[71];
+		imap[17][23]=imap[23][70]=sti[1];
+		iflor[15][22]=iflor[22][15]=&stb[72];
+		imap[15][22]=imap[22][15]=sti[2];
+	}
 	for (i=0;i<=MX+1;i++)
 	{
 		map[0][i]=map[MX+1][i]=map[i][0]=map[i][MY+1]=&stb[2];
@@ -199,14 +264,31 @@ void mapload(int level)
 	}
 }
  
-int endcheck()
+int endcheck(int level)
 {
-    int i;
-    for (i=1;i<=PS;i++)
-    {
-        if (p[i].qut==0) return 0;
-    }
-    return 1;
+	if (level<3)  //自由模式&挑战12
+	{
+		int i;
+		for (i=1;i<=PS;i++)
+		{
+			if (p[i].qut==0) return 0;
+		}
+		return 1;
+	}
+	else if(level==3)  //挑战3
+	{
+		int i; int z=1;
+		for (i=1;i<=pn;i++)
+		{
+			if (p[i].id==26) {z=0; break;}
+		}
+		if (z==1) return 1;
+		for (i=1;i<=PS;i++)
+		{
+			if (p[i].qut==0) return 0;
+		}
+		return 1;
+	}
 }
 
 void pause(int *exitflag)
@@ -245,7 +327,7 @@ void drawguide(player *q,int xx,int yy)
 	int i;
 	for (i=1;i<=pn;i++)
 	{
-		if ((q==&p[i])||(p[i].id==4)||(p[i].id==21)||(p[i].id==22)||(p[i].id==23)||(p[i].id==25)) continue;
+		if ((q==&p[i])||(p[i].id==4)||(p[i].id==5)||(p[i].id==21)||(p[i].id==22)||(p[i].id==23)||(p[i].id==25)) continue;
 		if (((int)p[i].x>=q->sx)&&((int)p[i].x<=q->sx+10)&&((int)p[i].y>=q->sy)&&((int)p[i].y<=q->sy+10)) continue;
 		if (((int)p[i].x>=q->sx)&&((int)p[i].x<=q->sx+10)&&((int)p[i].y<q->sy))
 		{
@@ -454,7 +536,7 @@ void physics()
 					if (!liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp)
 						liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->own=p[i].own;
 					liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp-=(int)(BOMBDMG*(getv(&p[i])/9.0));
-					p[i].hp-=(int)(BOMBDMG*(getv(&p[i])/2.0));
+					p[i].hp-=(int)(BOMBDMG*(getv(&p[i])));
  
 					#ifdef WEAKMSG
 					if ((int)(p[i].eqp*(getv(&p[i])/9.0))>1)
@@ -527,13 +609,30 @@ void oxygen()  //氧气和其他生物事件判定
 		{
 			p[i].hp--;
 		}
-		if (p[i].id==24)  //敌人水晶
+		if (p[i].id==24)  //黑暗水晶
 		{
-			p[i].hp+=rand()%2;
+			if (p[i].hp<stp[p[i].id].hp) p[i].hp+=rand()%2;
 			int j;
 			for (j=1;j<=pn;j++)
 			{
-				if ((p[j].team==0)&&(dis(&p[i],&p[j])<=3)) p[j].hp+=5;
+				if ((p[j].team==0)&&(dis(&p[i],&p[j])<=3))
+				{
+					p[j].hp+=5;
+					p[j].hp=min(p[j].hp,stp[p[j].id].hp);
+				}
+			}
+		}
+		if (p[i].id==26)  //神圣水晶
+		{
+			if (p[i].hp<stp[p[i].id].hp) p[i].hp+=rand()%2;
+			int j;
+			for (j=1;j<=pn;j++)
+			{
+				if ((p[j].team==1)&&(dis(&p[i],&p[j])<=3))
+				{
+					p[j].hp+=5;
+					p[j].hp=min(p[j].hp,stp[p[j].id].hp);
+				}
 			}
 		}
 	}
@@ -564,6 +663,41 @@ void mapspawn(int level)  //地图自动大刷新
 			spawn(2,rand()%60+21,rand()%60+21);
 			p[pn].tol.ft=1000;
 		}
+	}
+	if (level==3)  //挑战3
+	{
+		int i,j;
+		int tn=0;int t=0;
+		for (j=1;j<=pn;j++)
+		{
+			if (p[j].id==24) tn++;
+			if (p[j].id==2) t++;
+		}
+		for (i=1;i<=3-tn+1-t;i++)
+		{
+			int m=rand()%100;
+			if (m>97)
+			{
+				spawn(2,rand()%30+51,rand()%30+51);
+				p[pn].tol=sti[5];
+				p[pn].spd=0.15;
+				p[pn].hp=200;
+			}
+			else if (m>85)
+			{
+				spawn(2,rand()%30+51,rand()%30+51);
+				p[pn].tol=sti[2];
+				p[pn].tol.ava=10;
+				p[pn].tol.ft=5000;
+			}
+			else
+			{
+				spawn(2,rand()%30+51,rand()%30+51);
+				p[pn].tol.ft=700;
+			}
+		}
+		int m=rand()%2;
+		if (m) spawn(3,rand()%20+1,rand()%20+1);
 	}
 }
  
@@ -698,7 +832,39 @@ void playerlogic()
 			continue;
 		}
 
-		if ((p[i].hp<=0)&&(p[i].id==24))  //敌方水晶死亡
+		if ((p[i].hp<=0)&&(p[i].id==24))  //黑暗水晶死亡
+		{
+			p[i].qut=1;
+			spawn(22,p[i].x-1,p[i].y);
+			p[pn].vx=-1; p[pn].vy=0; p[pn].hp=4; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
+			spawn(22,p[i].x,p[i].y-1);
+			p[pn].vx=0; p[pn].vy=-1; p[pn].hp=4; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
+			spawn(22,p[i].x+1,p[i].y);
+			p[pn].vx=1; p[pn].vy=0; p[pn].hp=4; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
+			spawn(22,p[i].x,p[i].y+1);
+			p[pn].vx=0; p[pn].vy=1; p[pn].hp=4; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
+ 
+			spawn(22,p[i].x-1,p[i].y-1);
+			p[pn].vx=-1; p[pn].vy=-1; p[pn].hp=2; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
+			spawn(22,p[i].x-1,p[i].y+1);
+			p[pn].vx=-1; p[pn].vy=1; p[pn].hp=2; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
+			spawn(22,p[i].x+1,p[i].y-1);
+			p[pn].vx=1; p[pn].vy=-1; p[pn].hp=2; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
+			spawn(22,p[i].x+1,p[i].y+1);
+			p[pn].vx=1; p[pn].vy=1; p[pn].hp=2; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
+ 
+			char ts[34];
+			strcpy(ts,p[i].own->c);
+			strcat(ts,"摧毁了敌方水晶!");
+			int j;
+			for (j=1;j<=pn;j++)
+				if (p[j].id==1) addmsg(&p[j],ts);
+
+			p[i]=p[pn]; p[pn].id=404; pn--;  //?
+			continue;
+		}
+
+		if ((p[i].hp<=0)&&(p[i].id==26))  //神圣水晶死亡
 		{
 			p[i].qut=1;
 			spawn(22,p[i].x-1,p[i].y);
@@ -886,7 +1052,7 @@ void playerlogic()
 			p[i].blow=0;
 		}
 
-		if (p[i].id==24)  //敌人水晶
+		if (p[i].id==24)  //黑暗水晶
 		{
 			if (ifoutmap(&p[i]))
 			{
@@ -930,6 +1096,16 @@ void playerlogic()
 			p[i].mt=clock();
 			p[i].hp--;
 			p[i].x+=p[i].vx; p[i].y+=p[i].vy;
+		}
+
+		if (p[i].id==26)  //神圣水晶
+		{
+			if (ifoutmap(&p[i]))
+			{
+				p[i].hp=0;
+				continue;
+			}
+			continue;
 		}
 	}
 }
@@ -1161,7 +1337,7 @@ void gamescreen(int playern,int level)
 		else controldbg(); 
 		#endif
 		
-        if (endcheck()) zz=1;
+        if (endcheck(level)) zz=1;
  
 		inputdbg();
 		gotoxy(1,1);

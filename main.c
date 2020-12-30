@@ -60,7 +60,7 @@ player p[OBJMAX];
 int pn;  //玩家和ai数量
 int PS;  //玩家数量
 int ETD;  //敌人队友子弹伤害
-int SPT[7]={0,5000,20000,0,0,0,0};  //各关卡地图刷新单位时间，单位ms
+int SPT[7]={0,5000,20000,20000,0,0,0};  //各关卡地图刷新单位时间，单位ms
 int fps,fpsf;
 clock_t fpst,dpst,ppst,opst,spst;
 clock_t stayt; //游戏坚持时间(实际记录游戏开始时间)
@@ -134,7 +134,7 @@ void gameend(int level)
 			print("  分数：",14,6);
 			int j,t=0;
 			t=(int)(((double)clock()-stayt)/CLOCKS_PER_SEC*1.5);
-			for (j=1;j<=20;j++) t+=p[i].kill[j]*stp[j].score;
+			for (j=1;j<=30;j++) t+=p[i].kill[j]*stp[j].score;
 			sum+=t;
 			printf("\e[0;37m\e[46m  %d\e[0m\n",t);
 			printf("\n");
@@ -165,7 +165,7 @@ void gameend(int level)
 			print("  分数：",14,6);
 			int j,t=0;
 			t=(int)(((double)clock()-stayt)/CLOCKS_PER_SEC*0.3);
-			for (j=1;j<=20;j++) t+=p[i].kill[j]*stp[j].score;
+			for (j=1;j<=30;j++) t+=p[i].kill[j]*stp[j].score;
 			sum+=t;
 			printf("\e[0;37m\e[46m  %d\e[0m\n",t);
 			printf("\n");
@@ -204,7 +204,7 @@ void gameend(int level)
 			print("  分数：",14,6);
 			int j,t=0;
 			t=(int)(((double)clock()-stayt)/CLOCKS_PER_SEC*0.3);
-			for (j=1;j<=20;j++) t+=p[i].kill[j]*stp[j].score;
+			for (j=1;j<=30;j++) t+=p[i].kill[j]*stp[j].score;
 			sum+=t;
 			printf("\e[0;37m\e[46m  %d\e[0m\n",t);
 			printf("\n");
@@ -218,6 +218,45 @@ void gameend(int level)
 		else if (sum>=300)
 		    print("一流的Stayer!令人惊艳的操作!",4,6);
 		else if (sum>=120)
+		    print("还算合格的初体验!成长令人期待!",14,6);
+		else print("...不愧是您。再试亿次吧~",13,6);
+		print("\n\n  按下ESC或者B键返回",14,6);
+		while (1)
+		{
+			getinput();
+			if (keyp("b")) {clrscr(); return;}
+			#ifdef WIN
+			if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
+			#endif
+		}
+	}
+	else if (level==3)  //挑战3
+	{
+		gotoxy(3,1);
+		print("                      结    束                        \n",7,6);
+		print("  共存活了",14,6);
+		printf("\e[0;37m\e[46m %.2lf\e[0m",((double)clock()-stayt)/CLOCKS_PER_SEC);
+		print("s,Stayer!\n",14,6);
+		for (i=1;i<=PS;i++)
+		{
+			print(p[i].c,14,6); printf("\n");
+			print("  分数：",14,6);
+			int j,t=0;
+			t=(int)(((double)clock()-stayt)/CLOCKS_PER_SEC*0.3);
+			for (j=1;j<=30;j++) t+=p[i].kill[j]*stp[j].score;
+			sum+=t;
+			printf("\e[0;37m\e[46m  %d\e[0m\n",t);
+			printf("\n");
+		}
+		sum/=PS;
+		print("      总分数：",14,6);
+		printf("\e[0;37m\e[46m  %d\e[0m\n",sum);
+		print("      评级：",14,6);
+		if (sum>=450)
+		    print("王者归来!那个人又回来了!全服震惊!",2,6);
+		else if (sum>=250)
+		    print("一流的Stayer!令人惊艳的操作!",4,6);
+		else if (sum>=100)
 		    print("还算合格的初体验!成长令人期待!",14,6);
 		else print("...不愧是您。再试亿次吧~",13,6);
 		print("\n\n  按下ESC或者B键返回",14,6);
@@ -286,6 +325,37 @@ void levelinfo(int level)
 			print("  证明自己的实力吧！Naive Stayer！",14,6);
 			gotoxy(9,1);
 			print("  提示:看看界面下方的Tips吧~",14,6);
+			gotoxy(13,1);
+			print("  按下回车或者E键继续~",14,6);
+			getinput();
+			if (keyp("e")) {clrscr(); return;}
+			#ifdef WIN
+			if (GetKeyState(VK_RETURN)<0) {clrscr(); return;}
+			#endif
+		}	
+	}
+	if (level==3)  //挑战3
+	{
+		while (1)
+		{
+    		#ifndef WIN
+    		wait(20);
+    		inbufn=0;
+	    	#endif
+			gotoxy(3,1);
+			print("                    什 么 是 Stay                   ",7,6);
+			gotoxy(5,1);
+			print("  这一次。",14,6);
+			gotoxy(6,1);
+			print("  你不仅要保护好自己",14,6);
+			gotoxy(7,1);
+			print("  更要保护好地图上的神圣水晶",14,6);
+			gotoxy(8,1);
+			print("  开始保护别人是成熟的标志",14,6);
+			gotoxy(9,1);
+			print("  Growing up! Stayer！",14,6);
+			gotoxy(10,1);
+			print("  提示：这一挑战的敌人将不再放水~",14,6);
 			gotoxy(13,1);
 			print("  按下回车或者E键继续~",14,6);
 			getinput();
@@ -387,12 +457,13 @@ void challenge()
 	clrscr();
 	clock_t st=clock();
 	int zz=1;
-	char sel[5][75];
+	char sel[6][75];
 	strcpy(sel[0],"                                                      ");
 	strcpy(sel[1],"                      挑 战 1                         ");
 	strcpy(sel[2],"                      挑 战 2                         ");
-	strcpy(sel[3],"                      返    回                        ");
-	strcpy(sel[4],"                                                      ");
+	strcpy(sel[3],"                      挑 战 3                         ");
+	strcpy(sel[4],"                      返    回                        ");
+	strcpy(sel[5],"                                                      ");
 	int z=1;
 	background();
 	while (1)
@@ -420,11 +491,11 @@ void challenge()
 		if (keyp("b")) {wait(200); clrscr(); return;}
 		if (keyp("e"))
 		{
-			if (z!=3)
+			if (z!=4)
 			{
 				levelinfo(z); levelentry(z); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
 			}
-			else if (z==3)
+			else if (z==4)
 			{
 				wait(200); clrscr(); return;
 			}
@@ -432,11 +503,11 @@ void challenge()
 		#ifdef WIN
 		if ((GetKeyState(VK_RETURN)<0)||(GetKeyState(VK_SPACE)<0))
 		{
-			if (z!=3)
+			if (z!=4)
 			{
 				levelinfo(z); levelentry(z); background(); gotoxy(15,1); print(tips[rand()%tipn],6,6); wait(200);
 			}
-			else if (z==3)
+			else if (z==4)
 			{
 				wait(200); clrscr(); return;
 			}
@@ -507,10 +578,17 @@ void help()
 		gotoxy(7,1);
 		print("移动:WASD 疾跑:LSHIFT 捡起&丢下:R 攻击:TFGH",14,6);
 		gotoxy(8,1);
+		#ifdef BIGKEYBOARD
 		print("玩家2：(其中数字为小键盘)",14,6);
 		gotoxy(9,1);
 		print("移动：↑←↓→ 疾跑：RSHIFT 捡起&丢下:7 攻击:8456",14,6);
 		gotoxy(10,1);
+		#else
+		print("玩家2：",14,6);
+		gotoxy(9,1);
+		print("移动：↑←↓→ 疾跑：RSHIFT 捡起&丢下:[ 攻击:pl;'",14,6);
+		gotoxy(10,1);
+		#endif
 		print("界面说明：",14,6);
 		gotoxy(11,1);
 		print("界面头行显示人物血量和氧气值",14,6);
