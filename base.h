@@ -4,7 +4,12 @@ void wait(int ms)
 	endwait = clock() + ms * CLOCKS_PER_SEC / 1000;//CLOCKS_PER_SEC宏定义1000,标准时间差
 	while(clock()<endwait);
 }
- 
+
+double sgn(double x)
+{
+    if (x!=0) return (x/abs(x)); else return 0;
+}
+
 #ifndef WIN
 int max(int a,int b)
 {

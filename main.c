@@ -15,6 +15,9 @@
  
 #include "stdinit.h"
 
+#define BIGKEYBOARD  //是否是大键盘
+#define DEBUG //是否显示DEBUG
+
 #define MX 100
 #define MY 100
 #define OBJMAX 6666  //地图对象数量上限
@@ -29,18 +32,21 @@
 #define PT 10  //物理计算单位时间，单位ms
 #define OT 1000  //氧气判定单位时间，单位ms
 #define BT 100  //击退延迟时间，单位ms
-//#define SPT 5000  //地图刷新单位时间，单位ms
+#define SWT 300  //切换道具延迟时间，单位ms
+#define SGT 60  //剑气延迟时间，单位ms
  
 #define BUB 1.3  //子弹击退常数(已失效)
 #define BLB 3.2  //手雷冲击波击退常数(已失效)
-#define PM 0.6  //物理引擎空间计算最小单位
+#define PM 0.3  //物理引擎空间计算最小单位
 #define EK 1  //弹性碰撞系数
  
 #define MHP 1000  //玩家HP上限
 #define MOG 1000  //玩家OG上限
 #define OGDMG 10  //缺氧伤害
+#define BOMBDMG 25  //手雷砸击伤害
 #define RUNOG -100  //奔跑最低氧气值
- 
+
+#define GUIDE  //地图显示指引
 #define WEAKMSG  //弱消息提醒开关
 //#define SCREENSHAKE  //屏幕抖动效果开关
 #define SHAKE 0.7  //屏幕抖动参数
@@ -57,17 +63,15 @@ int ETD;  //敌人队友子弹伤害
 int SPT[7]={0,5000,20000,0,0,0,0};  //各关卡地图刷新单位时间，单位ms
 int fps,fpsf;
 clock_t fpst,dpst,ppst,opst,spst;
-clock_t stayt; //游戏坚持时间
+clock_t stayt; //游戏坚持时间(实际记录游戏开始时间)
 FILE *fp;
 char tips[10][75];  //提示信息
 int tipn; //提示信息数
 
 #include "base.h"
 
-#include "test.h"
+#include "input.h"
 
-#include "basic.h"
- 
 void background()
 {
 	gotoxy(1,1);
@@ -101,9 +105,13 @@ void background()
 	gotoxy(15,1);
 	print("                                                      ",6,6);
 	gotoxy(16,1);
-	print("   Alpha 0.7                                          ",5,6);
+	print("   Alpha 0.8                                          ",5,6);
 }
- 
+
+#include "test.h"
+
+#include "basic.h"
+
 void gameend(int level)
 {
     int i,sum=0;
@@ -223,7 +231,7 @@ void gameend(int level)
 		}
 	}
 }
- 
+
 void levelinfo(int level)
 {
 	wait(200);
@@ -288,7 +296,7 @@ void levelinfo(int level)
 		}	
 	}
 }
- 
+
 void levelentry(int level)
 {
 	wait(200);
@@ -305,7 +313,7 @@ void levelentry(int level)
 	char sel[5][75];
 	strcpy(sel[0],"                                                      ");
 	strcpy(sel[1],"                      独狼模式                        ");
-	strcpy(sel[2],"                      基友模式                        ");
+	strcpy(sel[2],"                      基友乱战                        ");
 	strcpy(sel[3],"                      返    回                        ");
 	strcpy(sel[4],"                                                      ");
 	int z=1;
@@ -497,11 +505,11 @@ void help()
 		gotoxy(6,1);
 		print("玩家1：",14,6);
 		gotoxy(7,1);
-		print("移动：WASD 疾跑：LSHIFT 捡起：Y 丢下：R 攻击 TFGH",14,6);
+		print("移动:WASD 疾跑:LSHIFT 捡起&丢下:R 攻击:TFGH",14,6);
 		gotoxy(8,1);
-		print("玩家2：",14,6);
+		print("玩家2：(其中数字为小键盘)",14,6);
 		gotoxy(9,1);
-		print("移动：↑←↓→ 疾跑：RSHIFT 捡起：O 丢下：U 攻击 IJKL",14,6);
+		print("移动：↑←↓→ 疾跑：RSHIFT 捡起&丢下:7 攻击:8456",14,6);
 		gotoxy(10,1);
 		print("界面说明：",14,6);
 		gotoxy(11,1);
@@ -511,7 +519,7 @@ void help()
 		gotoxy(13,1);
 		print("图标说明：",11,6);
 		gotoxy(14,1);
-		print("玩家:デ 敌人:バ 护卫:ㄐ",11,6);
+		print("玩家:デ 敌人:バ 护卫:ㄐ 箱子:ロ 黑暗水晶:※",11,6);
 		gotoxy(15,1);
 		print("游戏基本规则：活下去！同时尽可能完成相应的任务。",9,6);
 		getinput();
@@ -612,9 +620,13 @@ void menu()
  
 void tipsinit()
 {
-	tipn=2; //提示信息数
+	tipn=6; //提示信息数
 	strcpy(tips[0],"      Tips:自由模式没有敌人？按c和方向键试试~");
 	strcpy(tips[1],"      Tips:嫌子弹不够？为什么不找开枪的人要呢~");
+	strcpy(tips[2],"      Tips:挑战模式没有武器？往左上角跑跑~");
+	strcpy(tips[3],"      Tips:想要更炫酷的道具？关注一下箱子吧~");
+	strcpy(tips[4],"      Tips:温馨提示:不要在黑暗水晶附近聚集敌人~");
+	strcpy(tips[5],"      Tips:据说有一把刀能够轻松乱杀一切~");
 }
  
 void main()

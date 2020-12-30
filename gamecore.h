@@ -65,7 +65,29 @@ void drop(player *q)
 	imap[(int)(q->x)][(int)(q->y)]=q->tol;
 	q->tol=sti[0];
 }
- 
+
+void pick(player *q)
+{
+	if ((q->swt*CLOCKS_PER_SEC/1000)+SWT>clock()) return;
+	q->swt=clock();
+	if ((q->tol.id==0)&&(iflor[(int)(q->x)][(int)(q->y)]->id>70))
+	{
+		pickup(q);
+	}
+	else if (q->tol.id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
+	{
+		drop(q);
+	}
+	else
+	{
+		item tt;
+		tt=q->tol;
+		q->tol=imap[(int)(q->x)][(int)(q->y)];
+		iflor[(int)(q->x)][(int)(q->y)]=&stb[tt.id+70];
+		imap[(int)(q->x)][(int)(q->y)]=tt;
+	}
+}
+
 void ammocheck(player *q)
 {
 	if (q->tol.ava<=0)
@@ -118,6 +140,45 @@ void attack(player *pp,int xx,int yy)
 		p[pn].blow=pp->tol.blow;
 		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
 		p[pn].own=pp;
+	}
+	if (pp->tol.id==6)  //武士刀
+	{
+		if (xx==0)
+		{
+			pn++;
+			p[pn]=stp[25]; p[pn].vx=xx; p[pn].vy=yy; p[pn].eqp+=pp->tol.dmg;
+			p[pn].blow=pp->tol.blow;
+			p[pn].x=pp->x+xx;p[pn].y=pp->y+yy*2;
+			p[pn].own=pp;
+			pn++;
+			p[pn]=stp[25]; p[pn].vx=xx; p[pn].vy=yy; p[pn].eqp+=pp->tol.dmg;
+			p[pn].blow=pp->tol.blow;
+			p[pn].x=pp->x+xx-1;p[pn].y=pp->y+yy;
+			p[pn].own=pp;
+			pn++;
+			p[pn]=stp[25]; p[pn].vx=xx; p[pn].vy=yy; p[pn].eqp+=pp->tol.dmg;
+			p[pn].blow=pp->tol.blow;
+			p[pn].x=pp->x+xx+1;p[pn].y=pp->y+yy;
+			p[pn].own=pp;
+		}
+		else
+		{
+			pn++;
+			p[pn]=stp[25]; p[pn].vx=xx; p[pn].vy=yy; p[pn].eqp+=pp->tol.dmg;
+			p[pn].blow=pp->tol.blow;
+			p[pn].x=pp->x+xx*2;p[pn].y=pp->y+yy;
+			p[pn].own=pp;
+			pn++;
+			p[pn]=stp[25]; p[pn].vx=xx; p[pn].vy=yy; p[pn].eqp+=pp->tol.dmg;
+			p[pn].blow=pp->tol.blow;
+			p[pn].x=pp->x+xx;p[pn].y=pp->y+yy-1;
+			p[pn].own=pp;
+			pn++;
+			p[pn]=stp[25]; p[pn].vx=xx; p[pn].vy=yy; p[pn].eqp+=pp->tol.dmg;
+			p[pn].blow=pp->tol.blow;
+			p[pn].x=pp->x+xx;p[pn].y=pp->y+yy+1;
+			p[pn].own=pp;
+		}
 	}
 	ammocheck(pp);
 }

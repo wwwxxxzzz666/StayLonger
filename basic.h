@@ -5,7 +5,7 @@ void spawn(int id,double xx,double yy)
 	p[pn].x=xx;
 	p[pn].y=yy;
 	p[pn].vx=p[pn].vy=0;
-	p[pn].at=p[pn].mt=p[pn].ot=p[pn].bt=0;
+	p[pn].at=p[pn].mt=p[pn].ot=p[pn].bt=p[pn].swt=0;
 	p[pn].sx=p[pn].sy=1;
 	p[pn].qut=0;
 	p[pn].own=&p[pn];
@@ -27,7 +27,7 @@ void playerinit(int playern,int level)
 			p[i].hp=p[i].fd=p[i].wt=p[i].og=100;
 			p[i].tol=&sti[0];
 			p[i].eqp=0;*/
-			p[i].at=p[i].mt=p[i].ot=p[i].bt=0;
+			p[i].at=p[i].mt=p[i].ot=p[i].bt=p[pn].swt=0;
 			p[i].sx=p[i].sy=1;
 			p[i].vx=p[i].vy=0;
 			p[i].x=p[i].y=9+i;
@@ -58,7 +58,7 @@ void playerinit(int playern,int level)
 		for (i=1;i<=playern;i++)
 		{
 			p[i]=stp[1];
-			p[i].at=p[i].mt=p[i].ot=0;
+			p[i].at=p[i].mt=p[i].ot=p[i].bt=p[pn].swt=0;
 			p[i].sx=p[i].sy=1;
 			p[i].vx=p[i].vy=0;
 			p[i].qut=0;
@@ -89,7 +89,7 @@ void playerinit(int playern,int level)
 		for (i=1;i<=playern;i++)
 		{
 			p[i]=stp[1];
-			p[i].at=p[i].mt=p[i].ot=0;
+			p[i].at=p[i].mt=p[i].ot=p[i].bt=p[pn].swt=0;
 			p[i].sx=p[i].sy=1;
 			p[i].vx=p[i].vy=0;
 			p[i].qut=0;
@@ -141,6 +141,14 @@ void mapload(int level)
 				iflor[i][j]=&stb[1];
 				liv[i][j]=&p[0];
 			}
+		FILE *mf;
+		if ((mf=fopen("map.dat","r"))!=NULL)
+		{
+			for (i=1;i<=MX;i++)
+				for (j=1;j<=MY;j++)
+					fscanf(mf,"%d",&flor[i][j]);
+			fclose(mf);
+		}
 		iflor[8][8]=iflor[7][8]=&stb[71];
 		imap[8][8]=imap[7][8]=sti[1];
 		iflor[9][10]=&stb[72];
@@ -151,6 +159,8 @@ void mapload(int level)
 		imap[5][10]=sti[4];
 		iflor[5][7]=&stb[75];
 		imap[5][7]=sti[5];
+		iflor[12][10]=&stb[76];
+		imap[12][10]=sti[6];
 	}
 	else if (level==1)  //挑战1
 	{
@@ -198,15 +208,88 @@ int endcheck()
     }
     return 1;
 }
- 
+
+void pause(int *exitflag)
+{
+	clock_t tt=clock();
+	background();
+	wait(200);
+	gotoxy(3,1);
+	print("                      暂    停                        \n",7,6);
+	print(" 已经共存活了",14,6);
+	printf("\e[0;37m\e[46m %.2lf\e[0m",((double)clock()-stayt)/CLOCKS_PER_SEC);
+	print("s,Stayer!\n",14,6);
+	print("\n  按下ESC或者B键返回游戏\n",14,6);
+	print("  按下回车或者E键推出游戏",14,6);
+	while (1)
+	{
+
+		getinput();
+		if (keyp("b")) {wait(200); clrscr(); stayt+=(clock()-tt); return;}
+		if (keyp("e")) {stayt+=(clock()-tt); *exitflag=1; return;}
+		#ifdef WIN
+		if (GetKeyState(VK_ESCAPE)<0) {wait(200); clrscr(); stayt+=(clock()-tt); return;}
+		if (GetKeyState(VK_RETURN)<0) {stayt+=(clock()-tt); *exitflag=1; return;}
+		#endif
+	}
+}
+
 void addmsg(player *q,char *ss)
 {
 	strcpy(q->msg[2],q->msg[1]);
 	strcpy(q->msg[1],ss);
 }
- 
-#include "input.h"
- 
+
+void drawguide(player *q,int xx,int yy)
+{
+	int i;
+	for (i=1;i<=pn;i++)
+	{
+		if ((q==&p[i])||(p[i].id==4)||(p[i].id==21)||(p[i].id==22)||(p[i].id==23)||(p[i].id==25)) continue;
+		if (((int)p[i].x>=q->sx)&&((int)p[i].x<=q->sx+10)&&((int)p[i].y>=q->sy)&&((int)p[i].y<=q->sy+10)) continue;
+		if (((int)p[i].x>=q->sx)&&((int)p[i].x<=q->sx+10)&&((int)p[i].y<q->sy))
+		{
+			gotoxy(xx+(int)p[i].x-q->sx+1,yy);
+			print("←",stb[p[i].id+20].fc,flor[(int)p[i].x][q->sy]);
+		}
+		if (((int)p[i].x>=q->sx)&&((int)p[i].x<=q->sx+10)&&((int)p[i].y>q->sy+10))
+		{
+			gotoxy(xx+(int)p[i].x-q->sx+1,yy+20);
+			print("→",stb[p[i].id+20].fc,flor[(int)p[i].x][q->sy+10]);
+		}
+		if (((int)p[i].y>=q->sy)&&((int)p[i].y<=q->sy+10)&&((int)p[i].x<q->sx))
+		{
+			gotoxy(xx+1,yy+((int)p[i].y-q->sy)*2);
+			print("↑",stb[p[i].id+20].fc,flor[q->sx][(int)p[i].y]);
+		}
+		if (((int)p[i].y>=q->sy)&&((int)p[i].y<=q->sy+10)&&((int)p[i].x>q->sx+10))
+		{
+			gotoxy(xx+11,yy+((int)p[i].y-q->sy)*2);
+			print("↓",stb[p[i].id+20].fc,flor[q->sx+10][(int)p[i].y]);
+		}
+		if (((int)p[i].x<q->sx)&&((int)p[i].y<q->sy))
+		{
+			gotoxy(xx+1,yy);
+			print("↖",stb[p[i].id+20].fc,flor[q->sx][q->sy]);
+		}
+		if (((int)p[i].x<q->sx)&&((int)p[i].y>q->sy+10))
+		{
+			gotoxy(xx+1,yy+20);
+			print("↗",stb[p[i].id+20].fc,flor[q->sx][q->sy+10]);
+		}
+		if (((int)p[i].x>q->sx+10)&&((int)p[i].y<q->sy))
+		{
+			gotoxy(xx+11,yy);
+			print("↙",stb[p[i].id+20].fc,flor[q->sx+10][q->sy]);
+		}
+		if (((int)p[i].x>q->sx+10)&&((int)p[i].y>q->sy+10))
+		{
+			gotoxy(xx+11,yy+20);
+			print("↘",stb[p[i].id+20].fc,flor[q->sx+10][q->sy+10]);
+		}
+	}
+}
+
 void draw(player *q,int xx,int yy)
 {
 	if (q->id>2) return;
@@ -239,6 +322,10 @@ void draw(player *q,int xx,int yy)
 		}
 		gotoxy(xx+i-q->sx+2,yy);
 	}
+	#ifdef GUIDE
+	drawguide(q,xx,yy);
+	#endif
+	gotoxy(xx+12,yy);
 	printf("%s %s:%d ",q->c,q->tol.c,q->tol.ava);
 	if (iflor[(int)q->x][(int)q->y]->id==1)
 		print("空地",11,0);
@@ -247,10 +334,10 @@ void draw(player *q,int xx,int yy)
 	print("  ",11,0);
 	gotoxy(xx+13,yy);
 	print(q->msg[1],8,0);
-	printf("      ");
+	printf("        ");
 	gotoxy(xx+14,yy);
 	print(q->msg[2],9,0);
-	printf("      ");
+	printf("        ");
 	gotoxy(xx+15,yy);
 	printf("%d %d",inbufn,pn);
 	printf(" fps:%d  %.2lf",fps,q->x);
@@ -340,7 +427,7 @@ void maprefresh()
 		#endif
 	}
 }
- 
+
 #include "gamecore.h"
  
 void physics()
@@ -366,7 +453,8 @@ void physics()
 					if (!liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->id) continue;
 					if (!liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp)
 						liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->own=p[i].own;
-					liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp-=(int)(p[i].eqp*(getv(&p[i])/9.0));
+					liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+p[i].vy)]->hp-=(int)(BOMBDMG*(getv(&p[i])/9.0));
+					p[i].hp-=(int)(BOMBDMG*(getv(&p[i])/2.0));
  
 					#ifdef WEAKMSG
 					if ((int)(p[i].eqp*(getv(&p[i])/9.0))>1)
@@ -406,7 +494,14 @@ void physics()
 			}
 		}
 		p[i].vx*=tt; p[i].vy*=tt;
-		p[i].vx*=p[i].miu; p[i].vy*=p[i].miu;
+		if (abs(p[i].vx)>5*p[i].miu)
+			p[i].vx-=sgn(p[i].vx)*3.0*p[i].miu;
+		else
+			p[i].vx*=p[i].miu;
+		if (abs(p[i].vy)>5*p[i].miu)
+			p[i].vy-=sgn(p[i].vy)*3.0*p[i].miu;
+		else
+			p[i].vy*=p[i].miu;
 	}
 }
  
@@ -457,11 +552,17 @@ void mapspawn(int level)  //地图自动大刷新
 	}
 	if (level==2)  //挑战2
 	{
-		int i;
-		for (i=1;i<=min(1,(int)((((double)clock()-stayt)/CLOCKS_PER_SEC)/10));i++)
+		int i,j;
+		int tn=0;int t=0;
+		for (j=1;j<=pn;j++)
+		{
+			if (p[i].id==24) tn++;
+			if (p[i].id==2) t++;
+		}
+		for (i=1;i<=3-tn+1-t;i++)
 		{
 			spawn(2,rand()%60+21,rand()%60+21);
-			p[pn].tol.ft=500;
+			p[pn].tol.ft=1000;
 		}
 	}
 }
@@ -474,7 +575,7 @@ void playerlogic()
 		if (p[i].id<=20) backinmap(&p[i]);
 		vlimit(&p[i]);
 
-		if ((p[i].id!=4)&&(p[i].id!=21)&&(p[i].id!=22)&&((p[i].bx!=0)||(p[i].by!=0))&&(p[i].bt+BT*CLOCKS_PER_SEC/1000<=clock()))
+		if ((p[i].id!=4)&&(p[i].id!=21)&&(p[i].id!=22)&&((p[i].bx!=0)||(p[i].by!=0))&&(p[i].bt+BT*CLOCKS_PER_SEC/1000<=clock()))  //击退延迟计算
 		{
 			p[i].vx+=p[i].bx; p[i].vy+=p[i].by;
 			p[i].bx=p[i].by=0;
@@ -512,22 +613,22 @@ void playerlogic()
 		{
 			p[i].qut=1;
 			spawn(22,p[i].x-1,p[i].y);
-			p[pn].vx=-1; p[pn].vy=0; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
+			p[pn].vx=-1; p[pn].vy=0; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x,p[i].y-1);
-			p[pn].vx=0; p[pn].vy=-1; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
+			p[pn].vx=0; p[pn].vy=-1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x+1,p[i].y);
-			p[pn].vx=1; p[pn].vy=0; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
+			p[pn].vx=1; p[pn].vy=0; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x,p[i].y+1);
-			p[pn].vx=0; p[pn].vy=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
+			p[pn].vx=0; p[pn].vy=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
  
 			spawn(22,p[i].x-1,p[i].y-1);
-			p[pn].vx=-1; p[pn].vy=-1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
+			p[pn].vx=-1; p[pn].vy=-1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x-1,p[i].y+1);
-			p[pn].vx=-1; p[pn].vy=1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
+			p[pn].vx=-1; p[pn].vy=1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x+1,p[i].y-1);
-			p[pn].vx=1; p[pn].vy=-1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
+			p[pn].vx=1; p[pn].vy=-1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x+1,p[i].y+1);
-			p[pn].vx=1; p[pn].vy=1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
+			p[pn].vx=1; p[pn].vy=1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			p[i]=p[pn]; p[pn].id=404; pn--;  //?
  
 #ifdef WEAKMSG
@@ -544,8 +645,45 @@ void playerlogic()
 		if ((p[i].hp<=0)&&(p[i].id==5))  //箱子死亡
 		{
 			p[i].qut=1;
-			int t=rand()%100;
-			if (t>=90)
+			spawn(22,p[i].x-1,p[i].y);
+			p[pn].vx=-1; p[pn].vy=0; p[pn].own=p[i].own; p[pn].hp=2; p[pn].blow=p[i].blow; p[pn].eqp=0;
+			spawn(22,p[i].x,p[i].y-1);
+			p[pn].vx=0; p[pn].vy=-1; p[pn].own=p[i].own; p[pn].hp=2; p[pn].blow=p[i].blow; p[pn].eqp=0;
+			spawn(22,p[i].x+1,p[i].y);
+			p[pn].vx=1; p[pn].vy=0; p[pn].own=p[i].own; p[pn].hp=2; p[pn].blow=p[i].blow; p[pn].eqp=0;
+			spawn(22,p[i].x,p[i].y+1);
+			p[pn].vx=0; p[pn].vy=1; p[pn].own=p[i].own; p[pn].hp=2; p[pn].blow=p[i].blow; p[pn].eqp=0;
+ 
+			spawn(22,p[i].x-1,p[i].y-1);
+			p[pn].vx=-1; p[pn].vy=-1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=0;
+			spawn(22,p[i].x-1,p[i].y+1);
+			p[pn].vx=-1; p[pn].vy=1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=0;
+			spawn(22,p[i].x+1,p[i].y-1);
+			p[pn].vx=1; p[pn].vy=-1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=0;
+			spawn(22,p[i].x+1,p[i].y+1);
+			p[pn].vx=1; p[pn].vy=1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=0;
+			int t=rand()%200;
+			if (t>=190)
+			{
+				iflor[(int)p[i].x][(int)p[i].y]=&stb[76];
+				imap[(int)p[i].x][(int)p[i].y]=sti[6];
+			}
+			else if (t>=180)
+			{
+				iflor[(int)p[i].x][(int)p[i].y]=&stb[75];
+				imap[(int)p[i].x][(int)p[i].y]=sti[5];
+			}
+			else if (t>=150)
+			{
+				iflor[(int)p[i].x][(int)p[i].y]=&stb[74];
+				imap[(int)p[i].x][(int)p[i].y]=sti[4];
+			}
+			else if (t>=90)
+			{
+				iflor[(int)p[i].x][(int)p[i].y]=&stb[73];
+				imap[(int)p[i].x][(int)p[i].y]=sti[3];
+			}
+			else if (t>=70)
 			{
 				iflor[(int)p[i].x][(int)p[i].y]=&stb[72];
 				imap[(int)p[i].x][(int)p[i].y]=sti[2];
@@ -555,6 +693,7 @@ void playerlogic()
 				iflor[(int)p[i].x][(int)p[i].y]=&stb[71];
 				imap[(int)p[i].x][(int)p[i].y]=sti[1];
 			}
+
 			p[i]=p[pn]; p[pn].id=404; pn--;  //?
 			continue;
 		}
@@ -563,31 +702,31 @@ void playerlogic()
 		{
 			p[i].qut=1;
 			spawn(22,p[i].x-1,p[i].y);
-			p[pn].vx=-1; p[pn].vy=0; p[pn].hp=5; p[pn].own=&p[i]; p[pn].blow=p[i].blow;
+			p[pn].vx=-1; p[pn].vy=0; p[pn].hp=4; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x,p[i].y-1);
-			p[pn].vx=0; p[pn].vy=-1; p[pn].hp=5; p[pn].own=&p[i]; p[pn].blow=p[i].blow;
+			p[pn].vx=0; p[pn].vy=-1; p[pn].hp=4; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x+1,p[i].y);
-			p[pn].vx=1; p[pn].vy=0; p[pn].hp=5; p[pn].own=&p[i]; p[pn].blow=p[i].blow;
+			p[pn].vx=1; p[pn].vy=0; p[pn].hp=4; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x,p[i].y+1);
-			p[pn].vx=0; p[pn].vy=1; p[pn].hp=5; p[pn].own=&p[i]; p[pn].blow=p[i].blow;
+			p[pn].vx=0; p[pn].vy=1; p[pn].hp=4; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
  
 			spawn(22,p[i].x-1,p[i].y-1);
-			p[pn].vx=-1; p[pn].vy=-1; p[pn].own=&p[i]; p[pn].blow=p[i].blow;
+			p[pn].vx=-1; p[pn].vy=-1; p[pn].hp=2; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x-1,p[i].y+1);
-			p[pn].vx=-1; p[pn].vy=1; p[pn].own=&p[i]; p[pn].blow=p[i].blow;
+			p[pn].vx=-1; p[pn].vy=1; p[pn].hp=2; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x+1,p[i].y-1);
-			p[pn].vx=1; p[pn].vy=-1; p[pn].own=&p[i]; p[pn].blow=p[i].blow;
+			p[pn].vx=1; p[pn].vy=-1; p[pn].hp=2; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
 			spawn(22,p[i].x+1,p[i].y+1);
-			p[pn].vx=1; p[pn].vy=1; p[pn].own=&p[i]; p[pn].blow=p[i].blow;
-			p[i]=p[pn]; p[pn].id=404; pn--;  //?
+			p[pn].vx=1; p[pn].vy=1; p[pn].hp=2; p[pn].own=&stp[24]; p[pn].blow=p[i].blow; p[pn].eqp+=p[i].eqp;
  
 			char ts[34];
 			strcpy(ts,p[i].own->c);
-			strcpy(ts,"摧毁了敌方水晶!");
+			strcat(ts,"摧毁了敌方水晶!");
 			int j;
 			for (j=1;j<=pn;j++)
 				if (p[j].id==1) addmsg(&p[j],ts);
- 
+
+			p[i]=p[pn]; p[pn].id=404; pn--;  //?
 			continue;
 		}
 
@@ -689,6 +828,83 @@ void playerlogic()
 			}
 			if (map[(int)p[i].x][(int)p[i].y]->csh==0)
 			{
+				int t=p[i].hp;
+				p[i].hp=0;
+				if (!liv[(int)p[i].x][(int)p[i].y]->id) continue;
+				if (!liv[(int)p[i].x][(int)p[i].y]->qut)
+					liv[(int)p[i].x][(int)p[i].y]->own=p[i].own;
+				liv[(int)p[i].x][(int)p[i].y]->hp-=p[i].eqp*t;
+				liv[(int)p[i].x][(int)p[i].y]->by+=p[i].blow*p[i].vy;
+				liv[(int)p[i].x][(int)p[i].y]->bx+=p[i].blow*p[i].vx;
+				liv[(int)p[i].x][(int)p[i].y]->bt=clock();
+ 
+#ifdef WEAKMSG
+				char ts[34];
+				strcpy(ts,"你打了");
+				strcat(ts,liv[(int)p[i].x][(int)p[i].y]->c);
+				addmsg(p[i].own,ts);
+				strcpy(ts,p[i].own->c);
+				strcat(ts,"打了你");
+				addmsg(liv[(int)p[i].x][(int)p[i].y],ts);
+#endif
+ 
+				continue;
+			}
+			if ((BNT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
+			p[i].mt=clock();
+			p[i].hp--;
+			if (p[i].hp==0) continue;
+			spawn(22,p[i].x+p[i].vx,p[i].y+p[i].vy);  //冲击波基础扩散
+			p[pn].hp=p[i].hp;
+			p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
+			if ((p[i].vy!=0)&&(liv[(int)(p[i].x-1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))  //冲击波扩展扩散
+			{
+				spawn(22,p[i].x-1,p[i].y+p[i].vy);
+				p[pn].hp=p[i].hp;
+				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
+			}
+			if ((p[i].vy!=0)&&(liv[(int)(p[i].x+1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))
+			{
+				spawn(22,p[i].x+1,p[i].y+p[i].vy);
+				p[pn].hp=p[i].hp;
+				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
+			}
+			if ((p[i].vx!=0)&&(liv[(int)p[i].x][(int)(p[i].y-1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y-1)]->id!=2))
+			{
+				spawn(22,p[i].x+p[i].vx,p[i].y-1);
+				p[pn].hp=p[i].hp;
+				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
+			}
+			if ((p[i].vx!=0)&&(liv[(int)p[i].x][(int)(p[i].y+1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+1)]->id!=2))
+			{
+				spawn(22,p[i].x+p[i].vx,p[i].y+1);
+				p[pn].hp=p[i].hp;
+				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
+			}
+			p[i].hp=1;
+			p[i].eqp=0;
+			p[i].blow=0;
+		}
+
+		if (p[i].id==24)  //敌人水晶
+		{
+			if (ifoutmap(&p[i]))
+			{
+				p[i].hp=0;
+				continue;
+			}
+			continue;
+		}
+
+		if (p[i].id==25)  //剑气
+		{
+			if (ifoutmap(&p[i]))
+			{
+				p[i].hp=0;
+				continue;
+			}
+			if (map[(int)p[i].x][(int)p[i].y]->csh==0)
+			{
 				p[i].hp=0;
 				if (!liv[(int)p[i].x][(int)p[i].y]->id) continue;
 				if (!liv[(int)p[i].x][(int)p[i].y]->qut)
@@ -710,57 +926,20 @@ void playerlogic()
  
 				continue;
 			}
-			if ((BNT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
+			if ((SGT*CLOCKS_PER_SEC/1000)+p[i].mt>clock()) continue;
 			p[i].mt=clock();
 			p[i].hp--;
-			spawn(22,p[i].x+p[i].vx,p[i].y+p[i].vy);  //冲击波基础扩散
-			p[pn].hp=p[i].hp;
-			p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
-			if ((p[i].vy!=0)&&(liv[(int)(p[i].x-1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))  //冲击波扩展扩散
-			{
-				spawn(22,p[i].x-1,p[i].y+p[i].vy);
-				p[pn].hp=p[i].hp;
-				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow;	
-			}
-			if ((p[i].vy!=0)&&(liv[(int)(p[i].x+1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))
-			{
-				spawn(22,p[i].x+1,p[i].y+p[i].vy);
-				p[pn].hp=p[i].hp;
-				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
-			}
-			if ((p[i].vx!=0)&&(liv[(int)p[i].x][(int)(p[i].y-1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y-1)]->id!=2))
-			{
-				spawn(22,p[i].x+p[i].vx,p[i].y-1);
-				p[pn].hp=p[i].hp;
-				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
-			}
-			if ((p[i].vx!=0)&&(liv[(int)p[i].x][(int)(p[i].y+1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+1)]->id!=2))
-			{
-				spawn(22,p[i].x+p[i].vx,p[i].y+1);
-				p[pn].hp=p[i].hp;
-				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow;
-			}
+			p[i].x+=p[i].vx; p[i].y+=p[i].vy;
 		}
-
-		if (p[i].id==24)  //敌人水晶
-		{
-			if (ifoutmap(&p[i]))
-			{
-				p[i].hp=0;
-				continue;
-			}
-			continue;
-		}
-
 	}
 }
  
 void controldbg()
 {
-	if (keyp("w")&&(p[0].sx>1)) p[0].sx-=1;
-	if (keyp("a")&&(p[0].sy>1)) p[0].sy-=1;
-	if (keyp("s")&&(p[0].sx<MX-10)) p[0].sx+=1;
-	if (keyp("d")&&(p[0].sy<MY-10)) p[0].sy+=1;
+	if (keyp("i")&&(p[0].sx>1)) p[0].sx-=1;
+	if (keyp("j")&&(p[0].sy>1)) p[0].sy-=1;
+	if (keyp("k")&&(p[0].sx<MX-10)) p[0].sx+=1;
+	if (keyp("l")&&(p[0].sy<MY-10)) p[0].sy+=1;
 }
  
 clock_t st=0;
@@ -790,13 +969,17 @@ void control1(player *q,int *exitflag)
 	if (keyp("a")) move(q,0,-1,0);
 	if (keyp("s")) move(q,1,0,0);
 	if (keyp("d")) move(q,0,1,0);
-	if (keyp("r")&&q->tol.id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
+/*	if (keyp("y")&&q->tol.id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
 	{
 		drop(q);
 	}
-	if (keyp("y")&&(q->tol.id==0)&&(iflor[(int)(q->x)][(int)(q->y)]->id>70))
+	if (keyp("r")&&(q->tol.id==0)&&(iflor[(int)(q->x)][(int)(q->y)]->id>70))
 	{
 		pickup(q);
+	}*/
+	if (keyp("r")&&((q->tol.id!=0)||(iflor[(int)(q->x)][(int)(q->y)]->id>70)))
+	{
+		pick(q);
 	}
 	if (keyp("t")) attack(q,-1,0);
 	if (keyp("f")) attack(q,0,-1);
@@ -805,15 +988,16 @@ void control1(player *q,int *exitflag)
 	#ifndef WIN
 	if (z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
 	if (z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (keyp("E")) *exitflag=1;
+    if (keyp("E")) pause(exitflag);
 	#endif
     #ifdef WIN
 	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
 	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (GetKeyState(VK_ESCAPE)<0) *exitflag=1;
+    if (GetKeyState(VK_ESCAPE)<0) pause(exitflag);
     #endif
 }
- 
+
+#ifdef BIGKEYBOARD
 void control2(player *q,int *exitflag)
 {
 /*	if (q->qut==1) return;
@@ -843,30 +1027,71 @@ void control2(player *q,int *exitflag)
 	if (GetKeyState(VK_DOWN)<0) move(q,1,0,0);
 	if (GetKeyState(VK_RIGHT)<0) move(q,0,1,0);
 #endif
-	if (keyp("u")&&q->tol.id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
+	if ((GetKeyState(VK_NUMPAD7)<0)&&((q->tol.id!=0)||(iflor[(int)(q->x)][(int)(q->y)]->id>70)))
 	{
-		drop(q);
+		pick(q);
 	}
-	if (keyp("o")&&(q->tol.id==0)&&(iflor[(int)(q->x)][(int)(q->y)]->id>70))
-	{
-		pickup(q);
-	}
-	if (keyp("i")) attack(q,-1,0);
-	if (keyp("j")) attack(q,0,-1);
-	if (keyp("k")) attack(q,1,0);
-	if (keyp("l")) attack(q,0,1);
+	if (GetKeyState(VK_NUMPAD8)<0) attack(q,-1,0);
+	if (GetKeyState(VK_NUMPAD4)<0) attack(q,0,-1);
+	if (GetKeyState(VK_NUMPAD5)<0) attack(q,1,0);
+	if (GetKeyState(VK_NUMPAD6)<0) attack(q,0,1);
 	#ifndef WIN
 	if (z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
 	if (z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (keyp("E")) *exitflag=1;
+    if (keyp("E")) pause(exitflag);
 	#endif
     #ifdef WIN
 	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
 	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (GetKeyState(VK_ESCAPE)<0) *exitflag=1;
+    if (GetKeyState(VK_ESCAPE)<0) pause(exitflag);
     #endif
 }
+#else
+void control2(player *q,int *exitflag)
+{
+	if (q->qut==1) return;
  
+	if ((MT*CLOCKS_PER_SEC/1000)+st<=clock())
+	{
+		z=1; st=clock();
+	}
+ 
+#ifdef WIN
+	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0,1);
+	if ((GetKeyState(VK_LEFT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3,1);
+	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,3,0,1);
+	if ((GetKeyState(VK_RIGHT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,3,1);
+ 
+	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_LEFT)<0)) move(q,-sqrt(2)/2,-sqrt(2)/2,0);
+	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RIGHT)<0)) move(q,-sqrt(2)/2,sqrt(2)/2,0);
+	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_LEFT)<0)) move(q,sqrt(2)/2,-sqrt(2)/2,0);
+	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_RIGHT)<0)) move(q,sqrt(2)/2,sqrt(2)/2,0);
+	if (GetKeyState(VK_UP)<0) move(q,-1,0,0);
+	if (GetKeyState(VK_LEFT)<0) move(q,0,-1,0);
+	if (GetKeyState(VK_DOWN)<0) move(q,1,0,0);
+	if (GetKeyState(VK_RIGHT)<0) move(q,0,1,0);
+#endif
+	if (keyp("[")&&((q->tol.id!=0)||(iflor[(int)(q->x)][(int)(q->y)]->id>70)))
+	{
+		pick(q);
+	}
+	if (keyp("p")) attack(q,-1,0);
+	if (keyp("l")) attack(q,0,-1);
+	if (keyp(";")) attack(q,1,0);
+	if (keyp("'")) attack(q,0,1);
+	#ifndef WIN
+	if (z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if (z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (keyp("E")) pause(exitflag);
+	#endif
+    #ifdef WIN
+	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (GetKeyState(VK_ESCAPE)<0) pause(exitflag);
+    #endif
+}
+#endif
+
 void gamescreen(int playern,int level)
 {
     clrscr();
@@ -910,18 +1135,31 @@ void gamescreen(int playern,int level)
 			inbufn=0;
 			
 			draw(&p[1],1,1);
-            if (playern==2) draw(&p[2],1,23);
- 
-            gotoxy(1,45);
+            if (playern==2)
+			{
+				draw(&p[2],1,25);
+				int i;
+				for (i=1;i<=16;i++)
+				{
+					gotoxy(i,23); print("┃",8,0);
+				}
+			}
+			#ifdef DEBUG
+			else draw(&p[0],1,25);
+			#endif
+
+            gotoxy(1,47);
             print("STAYED",0,0);
-            gotoxy(2,45);
+            gotoxy(2,47);
             printf("%.2lfs",((double)clock()-stayt)/CLOCKS_PER_SEC);
 		}
 		getinput();
 		
-//		controldbg();
 		control1(&p[1],&zz);
 		if (playern==2) control2(&p[2],&zz);
+		#ifdef DEBUG
+		else controldbg(); 
+		#endif
 		
         if (endcheck()) zz=1;
  
