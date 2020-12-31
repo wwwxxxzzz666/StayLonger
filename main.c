@@ -34,7 +34,7 @@
 #define BT 100  //击退延迟时间，单位ms
 #define SWT 300  //切换道具延迟时间，单位ms
 #define SGT 60  //剑气延迟时间，单位ms
- 
+
 #define BUB 1.3  //子弹击退常数(已失效)
 #define BLB 3.2  //手雷冲击波击退常数(已失效)
 #define PM 0.3  //物理引擎空间计算最小单位
@@ -52,6 +52,7 @@
 #define SHAKE 0.7  //屏幕抖动参数
 
 block *map[MX+2][MY+2];
+block drbuf[MX+2][MY+2];
 int flor[MX+2][MY+2];
 block *iflor[MX+2][MY+2];
 item imap[MX+2][MY+2];
@@ -65,6 +66,7 @@ int fps,fpsf;
 clock_t fpst,dpst,ppst,opst,spst;
 clock_t stayt; //游戏坚持时间(实际记录游戏开始时间)
 FILE *fp;
+int pre;  //挑战完成保存进度
 char tips[10][75];  //提示信息
 int tipn; //提示信息数
 
@@ -105,7 +107,7 @@ void background()
 	gotoxy(15,1);
 	print("                                                      ",6,6);
 	gotoxy(16,1);
-	print("   Alpha 0.8                                          ",5,6);
+	print("   Alpha 1.0                                          ",5,6);
 }
 
 #include "test.h"
@@ -174,13 +176,23 @@ void gameend(int level)
 		print("      总分数：",14,6);
 		printf("\e[0;37m\e[46m  %d\e[0m\n",sum);
 		print("      评级：",14,6);
-		if (sum>=130)
+		if (sum>=160)
 		    print("王者归来!那个人又回来了!全服震惊!",2,6);
-		else if (sum>=80)
+		else if (sum>=100)
 		    print("一流的Stayer!令人惊艳的操作!",4,6);
-		else if (sum>=60)
+		else if (sum>=70)
 		    print("还算合格的初体验!成长令人期待!",14,6);
 		else print("...不愧是您。再试亿次吧~",13,6);
+		if (sum>=85)
+		{
+			pre=max(level+1,pre);
+			FILE *sv;
+			sv=fopen("challenge.sav","w");
+			fprintf(sv,"%d",pre);
+			fclose(sv);
+			print("\n恭喜您通过了该挑战~~~",13,6);
+		}
+		else print("\n很遗憾您没有通过该挑战",13,6);
 		print("\n\n  按下ESC或者B键返回",14,6);
 		while (1)
 		{
@@ -215,11 +227,21 @@ void gameend(int level)
 		print("      评级：",14,6);
 		if (sum>=600)
 		    print("王者归来!那个人又回来了!全服震惊!",2,6);
-		else if (sum>=300)
+		else if (sum>=320)
 		    print("一流的Stayer!令人惊艳的操作!",4,6);
 		else if (sum>=120)
 		    print("还算合格的初体验!成长令人期待!",14,6);
 		else print("...不愧是您。再试亿次吧~",13,6);
+		if (sum>=150)
+		{
+			pre=max(level+1,pre);
+			FILE *sv;
+			sv=fopen("challenge.sav","w");
+			fprintf(sv,"%d",pre);
+			fclose(sv);
+			print("\n恭喜您通过了该挑战~~~",13,6);
+		}
+		else print("\n很遗憾您没有通过该挑战",13,6);
 		print("\n\n  按下ESC或者B键返回",14,6);
 		while (1)
 		{
@@ -256,9 +278,19 @@ void gameend(int level)
 		    print("王者归来!那个人又回来了!全服震惊!",2,6);
 		else if (sum>=250)
 		    print("一流的Stayer!令人惊艳的操作!",4,6);
-		else if (sum>=100)
+		else if (sum>=130)
 		    print("还算合格的初体验!成长令人期待!",14,6);
 		else print("...不愧是您。再试亿次吧~",13,6);
+		if (sum>=160)
+		{
+			pre=max(level+1,pre);
+			FILE *sv;
+			sv=fopen("challenge.sav","w");
+			fprintf(sv,"%d",pre);
+			fclose(sv);
+			print("\n恭喜您通过了该挑战~~~",13,6);
+		}
+		else print("\n很遗憾您没有通过该挑战",13,6);
 		print("\n\n  按下ESC或者B键返回",14,6);
 		while (1)
 		{
@@ -465,6 +497,19 @@ void challenge()
 	strcpy(sel[4],"                      返    回                        ");
 	strcpy(sel[5],"                                                      ");
 	int z=1;
+	FILE *sv;  //读取挑战完成进度
+	if ((sv=fopen("challenge.sav","r"))!=NULL)
+	{
+		fscanf(sv,"%d",&pre);
+		fclose(sv);
+	}
+	else
+	{
+		pre=1;
+		sv=fopen("challenge.sav","w");
+		fprintf(sv,"%d",pre);
+		fclose(sv);
+	}
 	background();
 	while (1)
 	{
@@ -479,17 +524,26 @@ void challenge()
 		gotoxy(3,1);
 		print("                      挑    战                        ",7,6);
 		gotoxy(9,1);
-		print(sel[z-1],12,6);
+		if (z-1<=pre)
+			print(sel[z-1],12,6);
+		else
+			print(sel[z-1],7,6);
 		gotoxy(10,1);
 		printf("\e[4m");
-		print(sel[z],13,6);
+		if ((z<=pre)||(z>3))
+			print(sel[z],13,6);
+		else
+			print(sel[z],14,6);
 		gotoxy(11,1);
-		print(sel[z+1],12,6);
+		if ((z+1<=pre)||(z+1>3))
+			print(sel[z+1],12,6);
+		else
+			print(sel[z+1],7,6);
 		getinput();
 		if (zz&&keyp("w")&&(z>1)) zz=0,z--;
-		if (zz&&keyp("s")&&(z<3)) zz=0,z++;
+		if (zz&&keyp("s")&&(z<4)) zz=0,z++;
 		if (keyp("b")) {wait(200); clrscr(); return;}
-		if (keyp("e"))
+		if (keyp("e")&&((z>3)||(z<=pre)))
 		{
 			if (z!=4)
 			{
@@ -501,7 +555,7 @@ void challenge()
 			}
 		}
 		#ifdef WIN
-		if ((GetKeyState(VK_RETURN)<0)||(GetKeyState(VK_SPACE)<0))
+		if (((GetKeyState(VK_RETURN)<0)||(GetKeyState(VK_SPACE)<0))&&((z>3)||(z<=pre)))
 		{
 			if (z!=4)
 			{

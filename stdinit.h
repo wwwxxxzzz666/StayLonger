@@ -54,6 +54,10 @@ void stbinit()  //物块
 	strcpy(stb[4].c,"←");stb[4].fc=7;stb[4].csh=1;
 	strcpy(stb[5].c,"↓");stb[5].fc=7;stb[5].csh=1;
 	strcpy(stb[6].c,"→");stb[6].fc=7;stb[6].csh=1;
+	strcpy(stb[7].c,"↖");stb[7].fc=7;stb[7].csh=1;
+	strcpy(stb[8].c,"↗");stb[8].fc=7;stb[8].csh=1;
+	strcpy(stb[9].c,"↙");stb[9].fc=7;stb[9].csh=1;
+	strcpy(stb[10].c,"↘");stb[10].fc=7;stb[10].csh=1;
 	strcpy(stb[21].c,"デ");stb[21].fc=6;stb[21].csh=0; //人类
 	strcpy(stb[22].c,"バ");stb[22].fc=2;stb[22].csh=0; //敌人
 	strcpy(stb[23].c,"ㄐ");stb[23].fc=9;stb[23].csh=0; //护卫
@@ -71,6 +75,7 @@ void stbinit()  //物块
 	strcpy(stb[74].c,"ァ");stb[74].fc=13; //冲锋枪
 	strcpy(stb[75].c,"よ");stb[75].fc=13; //机枪
 	strcpy(stb[76].c,"じ");stb[76].fc=13; //武士刀
+	strcpy(stb[77].c,"ュ");stb[77].fc=13; //火箭筒
 }
  
 void stiinit()  //物品
@@ -83,7 +88,8 @@ void stiinit()  //物品
 	strcpy(sti[3].c,"球棒");sti[3].dmg=10;sti[3].ft=600; sti[3].ava=7; sti[3].blow=0.8;
 	strcpy(sti[4].c,"冲锋枪");sti[4].dmg=5;sti[4].ft=100; sti[4].ava=30; sti[4].blow=0.2;
 	strcpy(sti[5].c,"机枪");sti[5].dmg=20;sti[5].ft=150; sti[5].ava=100; sti[5].blow=0.5;
-	strcpy(sti[6].c,"武士刀");sti[6].dmg=15;sti[6].ft=350; sti[6].ava=7; sti[6].blow=0.6;
+	strcpy(sti[6].c,"武士刀");sti[6].dmg=15;sti[6].ft=380; sti[6].ava=7; sti[6].blow=0.6;
+	strcpy(sti[7].c,"火箭筒");sti[7].dmg=50;sti[7].ft=2500; sti[7].ava=10; sti[7].blow=3.2;
 }
  
 void stpinit()  //生物
@@ -161,7 +167,7 @@ void stpinit()  //生物
 	stp[23].spd=0;
 	stp[23].score=0;
 	strcpy(stp[24].c,"黑暗水晶");
-	stp[24].hp=300;
+	stp[24].hp=350;
 	stp[24].tol=sti[0];
 	stp[24].eqp=20;  //暂定爆炸伤害
 	stp[24].team=0;
@@ -177,7 +183,7 @@ void stpinit()  //生物
 	stp[25].score=0;
 	stp[25].blow=0.6;  //默认击退
 	strcpy(stp[26].c,"神圣水晶");
-	stp[26].hp=300;
+	stp[26].hp=350;
 	stp[26].tol=sti[0];
 	stp[26].eqp=-60;  //暂定爆炸伤害
 	stp[26].team=1;

@@ -180,6 +180,17 @@ void attack(player *pp,int xx,int yy)
 			p[pn].own=pp;
 		}
 	}
+	if (pp->tol.id==7)  //火箭筒
+	{
+		pp->tol.ava--;
+		pn++;
+		p[pn]=stp[4]; p[pn].vx=pp->vx+1.5*xx; p[pn].vy=pp->vy+1.5*yy; p[pn].eqp+=pp->tol.dmg;
+		p[pn].blow=pp->tol.blow;
+		p[pn].miu=1;
+		p[pn].hp=3;
+		p[pn].x=pp->x+xx;p[pn].y=pp->y+yy;
+		p[pn].own=pp;
+	}
 	ammocheck(pp);
 }
  

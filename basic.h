@@ -125,6 +125,8 @@ void playerinit(int playern,int level)
 		spawn(5,80,rand()%60+21);
 		spawn(5,80,rand()%60+21);
 		spawn(5,80,rand()%60+21);
+		spawn(2,rand()%60+21,rand()%60+21);
+		p[pn].tol.ft=1000;
 	}
 	else if (level==3)  //挑战3
 	{
@@ -209,6 +211,8 @@ void mapload(int level)
 		imap[5][7]=sti[5];
 		iflor[12][10]=&stb[76];
 		imap[12][10]=sti[6];
+		iflor[12][9]=&stb[77];
+		imap[12][9]=sti[7];
 	}
 	else if (level==1)  //挑战1
 	{
@@ -253,7 +257,7 @@ void mapload(int level)
 			}
 			
 		iflor[17][23]=iflor[23][17]=&stb[71];
-		imap[17][23]=imap[23][70]=sti[1];
+		imap[17][23]=imap[23][17]=sti[1];
 		iflor[15][22]=iflor[22][15]=&stb[72];
 		imap[15][22]=imap[22][15]=sti[2];
 	}
@@ -322,6 +326,14 @@ void addmsg(player *q,char *ss)
 	strcpy(q->msg[1],ss);
 }
 
+void drawinit(player *q)
+{
+	int i,j;
+	for (i=q->sx;i<=q->sx+10;i++)
+		for (j=q->sy;j<=q->sy+10;j++)
+			drbuf[i][j]=*map[i][j];
+}
+
 void drawguide(player *q,int xx,int yy)
 {
 	int i;
@@ -331,43 +343,59 @@ void drawguide(player *q,int xx,int yy)
 		if (((int)p[i].x>=q->sx)&&((int)p[i].x<=q->sx+10)&&((int)p[i].y>=q->sy)&&((int)p[i].y<=q->sy+10)) continue;
 		if (((int)p[i].x>=q->sx)&&((int)p[i].x<=q->sx+10)&&((int)p[i].y<q->sy))
 		{
-			gotoxy(xx+(int)p[i].x-q->sx+1,yy);
-			print("←",stb[p[i].id+20].fc,flor[(int)p[i].x][q->sy]);
+			drbuf[(int)p[i].x][q->sy]=stb[4];
+			drbuf[(int)p[i].x][q->sy].fc=stb[p[i].id+20].fc;
+//			gotoxy(xx+(int)p[i].x-q->sx+1,yy);
+//			print("←",stb[p[i].id+20].fc,flor[(int)p[i].x][q->sy]);
 		}
 		if (((int)p[i].x>=q->sx)&&((int)p[i].x<=q->sx+10)&&((int)p[i].y>q->sy+10))
 		{
-			gotoxy(xx+(int)p[i].x-q->sx+1,yy+20);
-			print("→",stb[p[i].id+20].fc,flor[(int)p[i].x][q->sy+10]);
+			drbuf[(int)p[i].x][q->sy+10]=stb[6];
+			drbuf[(int)p[i].x][q->sy+10].fc=stb[p[i].id+20].fc;
+//			gotoxy(xx+(int)p[i].x-q->sx+1,yy+20);
+//			print("→",stb[p[i].id+20].fc,flor[(int)p[i].x][q->sy+10]);
 		}
 		if (((int)p[i].y>=q->sy)&&((int)p[i].y<=q->sy+10)&&((int)p[i].x<q->sx))
 		{
-			gotoxy(xx+1,yy+((int)p[i].y-q->sy)*2);
-			print("↑",stb[p[i].id+20].fc,flor[q->sx][(int)p[i].y]);
+			drbuf[q->sx][(int)p[i].y]=stb[3];
+			drbuf[q->sx][(int)p[i].y].fc=stb[p[i].id+20].fc;
+//			gotoxy(xx+1,yy+((int)p[i].y-q->sy)*2);
+//			print("↑",stb[p[i].id+20].fc,flor[q->sx][(int)p[i].y]);
 		}
 		if (((int)p[i].y>=q->sy)&&((int)p[i].y<=q->sy+10)&&((int)p[i].x>q->sx+10))
 		{
-			gotoxy(xx+11,yy+((int)p[i].y-q->sy)*2);
-			print("↓",stb[p[i].id+20].fc,flor[q->sx+10][(int)p[i].y]);
+			drbuf[q->sx+10][(int)p[i].y]=stb[5];
+			drbuf[q->sx+10][(int)p[i].y].fc=stb[p[i].id+20].fc;
+//			gotoxy(xx+11,yy+((int)p[i].y-q->sy)*2);
+//			print("↓",stb[p[i].id+20].fc,flor[q->sx+10][(int)p[i].y]);
 		}
 		if (((int)p[i].x<q->sx)&&((int)p[i].y<q->sy))
 		{
-			gotoxy(xx+1,yy);
-			print("↖",stb[p[i].id+20].fc,flor[q->sx][q->sy]);
+			drbuf[q->sx][q->sy]=stb[7];
+			drbuf[q->sx][q->sy].fc=stb[p[i].id+20].fc;
+//			gotoxy(xx+1,yy);
+//			print("↖",stb[p[i].id+20].fc,flor[q->sx][q->sy]);
 		}
 		if (((int)p[i].x<q->sx)&&((int)p[i].y>q->sy+10))
 		{
-			gotoxy(xx+1,yy+20);
-			print("↗",stb[p[i].id+20].fc,flor[q->sx][q->sy+10]);
+			drbuf[q->sx][q->sy+10]=stb[8];
+			drbuf[q->sx][q->sy+10].fc=stb[p[i].id+20].fc;
+//			gotoxy(xx+1,yy+20);
+//			print("↗",stb[p[i].id+20].fc,flor[q->sx][q->sy+10]);
 		}
 		if (((int)p[i].x>q->sx+10)&&((int)p[i].y<q->sy))
 		{
-			gotoxy(xx+11,yy);
-			print("↙",stb[p[i].id+20].fc,flor[q->sx+10][q->sy]);
+			drbuf[q->sx+10][q->sy]=stb[9];
+			drbuf[q->sx+10][q->sy].fc=stb[p[i].id+20].fc;
+//			gotoxy(xx+11,yy);
+//			print("↙",stb[p[i].id+20].fc,flor[q->sx+10][q->sy]);
 		}
 		if (((int)p[i].x>q->sx+10)&&((int)p[i].y>q->sy+10))
 		{
-			gotoxy(xx+11,yy+20);
-			print("↘",stb[p[i].id+20].fc,flor[q->sx+10][q->sy+10]);
+			drbuf[q->sx+10][q->sy+10]=stb[10];
+			drbuf[q->sx+10][q->sy+10].fc=stb[p[i].id+20].fc;
+//			gotoxy(xx+11,yy+20);
+//			print("↘",stb[p[i].id+20].fc,flor[q->sx+10][q->sy+10]);
 		}
 	}
 }
@@ -382,6 +410,10 @@ void draw(player *q,int xx,int yy)
 	else
 		printf("HP:%d OG:%d      ",q->hp,q->og);
 	gotoxy(xx+1,yy);
+	drawinit(q);
+	#ifdef GUIDE
+	drawguide(q,xx,yy);
+	#endif
 	for (i=q->sx;i<=q->sx+10;i++)
 	{
 		for (j=q->sy;j<=q->sy+10;j++)
@@ -399,14 +431,11 @@ void draw(player *q,int xx,int yy)
 				if (iflor[i][j]->id>1)
 		        	print(iflor[i][j]->c,iflor[i][j]->fc,flor[i][j]);
 				else
-					print(map[i][j]->c,map[i][j]->fc,flor[i][j]);
+					print(drbuf[i][j].c,drbuf[i][j].fc,flor[i][j]);
 			}
 		}
 		gotoxy(xx+i-q->sx+2,yy);
 	}
-	#ifdef GUIDE
-	drawguide(q,xx,yy);
-	#endif
 	gotoxy(xx+12,yy);
 	printf("%s %s:%d ",q->c,q->tol.c,q->tol.ava);
 	if (iflor[(int)q->x][(int)q->y]->id==1)
@@ -416,10 +445,10 @@ void draw(player *q,int xx,int yy)
 	print("  ",11,0);
 	gotoxy(xx+13,yy);
 	print(q->msg[1],8,0);
-	printf("        ");
+	printf("          ");
 	gotoxy(xx+14,yy);
 	print(q->msg[2],9,0);
-	printf("        ");
+	printf("          ");
 	gotoxy(xx+15,yy);
 	printf("%d %d",inbufn,pn);
 	printf(" fps:%d  %.2lf",fps,q->x);
@@ -436,19 +465,19 @@ void backinmap(player *q)
 {
 	if (q->x+q->vx<1)
 	{
-		q->x=1; q->vx*=-EK;
+		q->x=1; q->vx*=-EK*0.2;
 	}
 	if (q->x+q->vx>MX+1)
 	{
-		q->x=MX; q->vx*=-EK;
+		q->x=MX; q->vx*=-EK*0.2;
 	}
 	if (q->y+q->vy<1)
 	{
-		q->y=1; q->vy*=-EK;
+		q->y=1; q->vy*=-EK*0.2;
 	}
 	if (q->y+q->vy>MY+1)
 	{
-		q->y=MY; q->vy*=-EK;
+		q->y=MY; q->vy*=-EK*0.2;
 	}
 }
  
@@ -556,18 +585,39 @@ void physics()
 				{
 					liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=tt*pp->vy*EK;
 					liv[(int)(pp->x+pp->vx)][(int)(pp->y)]->vx+=tt*pp->vx*EK;
-					pp->vx*=-EK; pp->vy*=-EK;  //??
+					if ((map[(int)(pp->x)][(int)(pp->y+pp->vy)]->id==2)||(map[(int)(pp->x+pp->vx)][(int)(pp->y)]->id==2))
+					{
+						pp->vx*=-EK*0.1; pp->vy*=-EK*0.1;  //??			
+					}
+					else
+					{
+						pp->vx*=-EK; pp->vy*=-EK;  //??
+					}
 				}
 				else
 				if ((liv[(int)(pp->x)][(int)(pp->y+pp->vy)]!=pp)&&(map[(int)(pp->x)][(int)(pp->y+pp->vy)]->csh==0))
 				{
 					liv[(int)(pp->x)][(int)(pp->y+pp->vy)]->vy+=tt*pp->vy*EK;
-					pp->vy*=-EK;
+					if (map[(int)(pp->x)][(int)(pp->y+pp->vy)]->id==2)
+					{
+						pp->vx*=-EK*0.1; pp->vy*=-EK*0.1;  //??			
+					}
+					else
+					{
+						pp->vx*=-EK; pp->vy*=-EK;  //??
+					}
 				}
 				else
 				{
 					liv[(int)(pp->x+pp->vx)][(int)(pp->y)]->vx+=tt*pp->vx*EK;
-					pp->vx*=-EK;
+					if (map[(int)(pp->x+pp->vx)][(int)(pp->y)]->id==2)
+					{
+						pp->vx*=-EK*0.1; pp->vy*=-EK*0.1;  //??			
+					}
+					else
+					{
+						pp->vx*=-EK; pp->vy*=-EK;  //??
+					}
 				}
 			}
 			else
@@ -576,11 +626,11 @@ void physics()
 			}
 		}
 		p[i].vx*=tt; p[i].vy*=tt;
-		if (abs(p[i].vx)>5*p[i].miu)
+		if ((p[i].id<=3)&&(abs(p[i].vx)>5*p[i].miu))
 			p[i].vx-=sgn(p[i].vx)*3.0*p[i].miu;
 		else
 			p[i].vx*=p[i].miu;
-		if (abs(p[i].vy)>5*p[i].miu)
+		if ((p[i].id<=3)&&(abs(p[i].vy)>5*p[i].miu))
 			p[i].vy-=sgn(p[i].vy)*3.0*p[i].miu;
 		else
 			p[i].vy*=p[i].miu;
@@ -637,7 +687,7 @@ void oxygen()  //氧气和其他生物事件判定
 		}
 	}
 }
- 
+
 void mapspawn(int level)  //地图自动大刷新
 {
 	if (level==1)  //挑战1
@@ -660,8 +710,26 @@ void mapspawn(int level)  //地图自动大刷新
 		}
 		for (i=1;i<=3-tn+1-t;i++)
 		{
-			spawn(2,rand()%60+21,rand()%60+21);
-			p[pn].tol.ft=1000;
+			int m=rand()%100;
+			if (m>92)
+			{
+				spawn(2,rand()%60+21,rand()%60+21);
+				p[pn].tol=sti[2];
+				p[pn].tol.ava=10;
+				p[pn].tol.ft=3500;
+			}
+			else if (m>85)
+			{
+				spawn(2,rand()%60+21,rand()%60+21);
+				p[pn].tol=sti[4];
+				p[pn].spd=0.33;
+				p[pn].hp=130;
+			}
+			else
+			{
+				spawn(2,rand()%60+21,rand()%60+21);
+				p[pn].tol.ft=1000;
+			}
 		}
 	}
 	if (level==3)  //挑战3
@@ -680,15 +748,32 @@ void mapspawn(int level)  //地图自动大刷新
 			{
 				spawn(2,rand()%30+51,rand()%30+51);
 				p[pn].tol=sti[5];
+				p[pn].tol.ava=250;
 				p[pn].spd=0.15;
 				p[pn].hp=200;
 			}
-			else if (m>85)
+			else if (m>95)
+			{
+				spawn(2,rand()%30+51,rand()%30+51);
+				p[pn].spd=0.15;
+				p[pn].hp=300;
+				p[pn].tol=sti[7];
+				p[pn].tol.ava=20;
+				p[pn].tol.ft=5000;
+			}
+			else if (m>83)
 			{
 				spawn(2,rand()%30+51,rand()%30+51);
 				p[pn].tol=sti[2];
 				p[pn].tol.ava=10;
-				p[pn].tol.ft=5000;
+				p[pn].tol.ft=3500;
+			}
+			else if (m>76)
+			{
+				spawn(2,rand()%30+51,rand()%30+51);
+				p[pn].tol=sti[4];
+				p[pn].spd=0.33;
+				p[pn].hp=130;
 			}
 			else
 			{
@@ -797,7 +882,12 @@ void playerlogic()
 			spawn(22,p[i].x+1,p[i].y+1);
 			p[pn].vx=1; p[pn].vy=1; p[pn].hp=1; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=0;
 			int t=rand()%200;
-			if (t>=190)
+			if (t>=195)
+			{
+				iflor[(int)p[i].x][(int)p[i].y]=&stb[77];
+				imap[(int)p[i].x][(int)p[i].y]=sti[7];
+			}
+			else if (t>=190)
 			{
 				iflor[(int)p[i].x][(int)p[i].y]=&stb[76];
 				imap[(int)p[i].x][(int)p[i].y]=sti[6];
@@ -1023,25 +1113,25 @@ void playerlogic()
 			spawn(22,p[i].x+p[i].vx,p[i].y+p[i].vy);  //冲击波基础扩散
 			p[pn].hp=p[i].hp;
 			p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
-			if ((p[i].vy!=0)&&(liv[(int)(p[i].x-1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))  //冲击波扩展扩散
+			if ((p[i].vx==0)&&(liv[(int)(p[i].x-1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))  //冲击波扩展扩散
 			{
 				spawn(22,p[i].x-1,p[i].y+p[i].vy);
 				p[pn].hp=p[i].hp;
 				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
 			}
-			if ((p[i].vy!=0)&&(liv[(int)(p[i].x+1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))
+			if ((p[i].vx==0)&&(liv[(int)(p[i].x+1)][(int)p[i].y]->id!=22)&&(liv[(int)(p[i].x-1)][(int)(p[i].y+p[i].vy)]->id!=2))
 			{
 				spawn(22,p[i].x+1,p[i].y+p[i].vy);
 				p[pn].hp=p[i].hp;
 				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
 			}
-			if ((p[i].vx!=0)&&(liv[(int)p[i].x][(int)(p[i].y-1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y-1)]->id!=2))
+			if ((p[i].vy==0)&&(liv[(int)p[i].x][(int)(p[i].y-1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y-1)]->id!=2))
 			{
 				spawn(22,p[i].x+p[i].vx,p[i].y-1);
 				p[pn].hp=p[i].hp;
 				p[pn].vx=p[i].vx; p[pn].vy=p[i].vy; p[pn].own=p[i].own; p[pn].blow=p[i].blow; p[pn].eqp=p[i].eqp;
 			}
-			if ((p[i].vx!=0)&&(liv[(int)p[i].x][(int)(p[i].y+1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+1)]->id!=2))
+			if ((p[i].vy==0)&&(liv[(int)p[i].x][(int)(p[i].y+1)]->id!=22)&&(liv[(int)(p[i].x+p[i].vx)][(int)(p[i].y+1)]->id!=2))
 			{
 				spawn(22,p[i].x+p[i].vx,p[i].y+1);
 				p[pn].hp=p[i].hp;
