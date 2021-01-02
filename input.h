@@ -12,7 +12,7 @@ void inputdbg()
  
 int keyp(char ss[])
 {
-	if (GetKeyState(ss[0]-32)<0) return 1;
+	if (GetKeyState(ss[0])<0) return 1;
 	return 0;
 }
 #endif

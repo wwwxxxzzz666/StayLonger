@@ -295,7 +295,7 @@ int endcheck(int level)
 	}
 }
 
-void pause(int *exitflag)
+void pausee(int *exitflag)
 {
 	clock_t tt=clock();
 	background();
@@ -311,8 +311,8 @@ void pause(int *exitflag)
 	{
 
 		getinput();
-		if (keyp("b")) {wait(200); clrscr(); stayt+=(clock()-tt); return;}
-		if (keyp("e")) {stayt+=(clock()-tt); *exitflag=1; return;}
+		if (keyp("B")) {wait(200); clrscr(); stayt+=(clock()-tt); return;}
+		if (keyp("E")) {stayt+=(clock()-tt); *exitflag=1; return;}
 		#ifdef WIN
 		if (GetKeyState(VK_ESCAPE)<0) {wait(200); clrscr(); stayt+=(clock()-tt); return;}
 		if (GetKeyState(VK_RETURN)<0) {stayt+=(clock()-tt); *exitflag=1; return;}
@@ -408,7 +408,7 @@ void draw(player *q,int xx,int yy)
 	if (q->hp<=-1958)
 		printf("很遗憾。你挂了！");
 	else
-		printf("HP:%d OG:%d      ",q->hp,q->og);
+		printf("HP:%d O2:%d      ",q->hp,q->og);
 	gotoxy(xx+1,yy);
 	drawinit(q);
 	#ifdef GUIDE
@@ -450,8 +450,8 @@ void draw(player *q,int xx,int yy)
 	print(q->msg[2],9,0);
 	printf("          ");
 	gotoxy(xx+15,yy);
-	printf("%d %d",inbufn,pn);
-	printf(" fps:%d  %.2lf",fps,q->x);
+//	printf("%d %d",inbufn,pn);
+	printf("%d fps:%d      ",pn,fps);
 }
  
 int ifoutmap(player *q)
@@ -1202,16 +1202,16 @@ void playerlogic()
  
 void controldbg()
 {
-	if (keyp("i")&&(p[0].sx>1)) p[0].sx-=1;
-	if (keyp("j")&&(p[0].sy>1)) p[0].sy-=1;
-	if (keyp("k")&&(p[0].sx<MX-10)) p[0].sx+=1;
-	if (keyp("l")&&(p[0].sy<MY-10)) p[0].sy+=1;
+	if (keyp("I")&&(p[0].sx>1)) p[0].sx-=1;
+	if (keyp("J")&&(p[0].sy>1)) p[0].sy-=1;
+	if (keyp("K")&&(p[0].sx<MX-10)) p[0].sx+=1;
+	if (keyp("L")&&(p[0].sy<MY-10)) p[0].sy+=1;
 }
- 
+
 clock_t st=0;
 int z=0;  //???
   
-void control1(player *q,int *exitflag)
+void control1(player *q,int *exitflag,int level)
 {
 	if (q->qut==1) return;
  
@@ -1221,20 +1221,20 @@ void control1(player *q,int *exitflag)
 	}
  
 #ifdef WIN
-	if ((keyp("w"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0,1);
-	if ((keyp("a"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3,1);
-	if ((keyp("s"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,3,0,1);
-	if ((keyp("d"))&&(GetKeyState(VK_LSHIFT)<0)&&(q->og>RUNOG)) move(q,0,3,1);
+	if ((keyp("W"))&&(GetKeyState('X')<0)&&(q->og>RUNOG)) move(q,-3,0,1);
+	if ((keyp("A"))&&(GetKeyState('X')<0)&&(q->og>RUNOG)) move(q,0,-3,1);
+	if ((keyp("S"))&&(GetKeyState('X')<0)&&(q->og>RUNOG)) move(q,3,0,1);
+	if ((keyp("D"))&&(GetKeyState('X')<0)&&(q->og>RUNOG)) move(q,0,3,1);
 #endif
  
-	if (keyp("w")&&(keyp("a"))) move(q,-sqrt(2)/2,-sqrt(2)/2,0);
-	if (keyp("w")&&(keyp("d"))) move(q,-sqrt(2)/2,sqrt(2)/2,0);
-	if (keyp("s")&&(keyp("a"))) move(q,sqrt(2)/2,-sqrt(2)/2,0);
-	if (keyp("s")&&(keyp("d"))) move(q,sqrt(2)/2,sqrt(2)/2,0);
-	if (keyp("w")) move(q,-1,0,0);
-	if (keyp("a")) move(q,0,-1,0);
-	if (keyp("s")) move(q,1,0,0);
-	if (keyp("d")) move(q,0,1,0);
+	if (keyp("W")&&(keyp("A"))) move(q,-sqrt(2)/2,-sqrt(2)/2,0);
+	if (keyp("W")&&(keyp("D"))) move(q,-sqrt(2)/2,sqrt(2)/2,0);
+	if (keyp("S")&&(keyp("A"))) move(q,sqrt(2)/2,-sqrt(2)/2,0);
+	if (keyp("S")&&(keyp("D"))) move(q,sqrt(2)/2,sqrt(2)/2,0);
+	if (keyp("W")) move(q,-1,0,0);
+	if (keyp("A")) move(q,0,-1,0);
+	if (keyp("S")) move(q,1,0,0);
+	if (keyp("D")) move(q,0,1,0);
 /*	if (keyp("y")&&q->tol.id&&(iflor[(int)(q->x)][(int)(q->y)]->id==1))
 	{
 		drop(q);
@@ -1243,28 +1243,27 @@ void control1(player *q,int *exitflag)
 	{
 		pickup(q);
 	}*/
-	if (keyp("r")&&((q->tol.id!=0)||(iflor[(int)(q->x)][(int)(q->y)]->id>70)))
+	if (keyp("R")&&((q->tol.id!=0)||(iflor[(int)(q->x)][(int)(q->y)]->id>70)))
 	{
 		pick(q);
 	}
-	if (keyp("t")) attack(q,-1,0);
-	if (keyp("f")) attack(q,0,-1);
-	if (keyp("g")) attack(q,1,0);
-	if (keyp("h")) attack(q,0,1);
+	if (keyp("T")) attack(q,-1,0);
+	if (keyp("F")) attack(q,0,-1);
+	if (keyp("G")) attack(q,1,0);
+	if (keyp("H")) attack(q,0,1);
 	#ifndef WIN
-	if (z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
-	if (z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (keyp("E")) pause(exitflag);
+	if ((level==0)&&z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if ((level==0)&&z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (keyp("E")) pausee(exitflag);
 	#endif
     #ifdef WIN
-	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
-	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (GetKeyState(VK_ESCAPE)<0) pause(exitflag);
+	if ((level==0)&&z&&keyp("C")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if ((level==0)&&z&&keyp("C")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (GetKeyState(VK_ESCAPE)<0) pausee(exitflag);
     #endif
 }
 
-#ifdef BIGKEYBOARD
-void control2(player *q,int *exitflag)
+void bcontrol2(player *q,int *exitflag,int level)
 {
 /*	if (q->qut==1) return;
 	if (keyp("i")) move(q,-1,0);
@@ -1279,10 +1278,10 @@ void control2(player *q,int *exitflag)
 	}
  
 #ifdef WIN
-	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0,1);
-	if ((GetKeyState(VK_LEFT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3,1);
-	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,3,0,1);
-	if ((GetKeyState(VK_RIGHT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,3,1);
+	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_NUMPAD1)<0)&&(q->og>RUNOG)) move(q,-3,0,1);
+	if ((GetKeyState(VK_LEFT)<0)&&(GetKeyState(VK_NUMPAD1)<0)&&(q->og>RUNOG)) move(q,0,-3,1);
+	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_NUMPAD1)<0)&&(q->og>RUNOG)) move(q,3,0,1);
+	if ((GetKeyState(VK_RIGHT)<0)&&(GetKeyState(VK_NUMPAD1)<0)&&(q->og>RUNOG)) move(q,0,3,1);
  
 	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_LEFT)<0)) move(q,-sqrt(2)/2,-sqrt(2)/2,0);
 	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RIGHT)<0)) move(q,-sqrt(2)/2,sqrt(2)/2,0);
@@ -1302,18 +1301,18 @@ void control2(player *q,int *exitflag)
 	if (GetKeyState(VK_NUMPAD5)<0) attack(q,1,0);
 	if (GetKeyState(VK_NUMPAD6)<0) attack(q,0,1);
 	#ifndef WIN
-	if (z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
-	if (z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (keyp("E")) pause(exitflag);
+	if ((level==0)&&z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if ((level==0)&&z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (keyp("E")) pausee(exitflag);
 	#endif
     #ifdef WIN
-	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
-	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (GetKeyState(VK_ESCAPE)<0) pause(exitflag);
+	if ((level==0)&&z&&keyp("C")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if ((level==0)&&z&&keyp("C")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (GetKeyState(VK_ESCAPE)<0) pausee(exitflag);
     #endif
 }
-#else
-void control2(player *q,int *exitflag)
+
+void control2(player *q,int *exitflag,int level)
 {
 	if (q->qut==1) return;
  
@@ -1323,10 +1322,10 @@ void control2(player *q,int *exitflag)
 	}
  
 #ifdef WIN
-	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,-3,0,1);
-	if ((GetKeyState(VK_LEFT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,-3,1);
-	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,3,0,1);
-	if ((GetKeyState(VK_RIGHT)<0)&&(GetKeyState(VK_RSHIFT)<0)&&(q->og>RUNOG)) move(q,0,3,1);
+	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RCONTROL)<0)&&(q->og>RUNOG)) move(q,-3,0,1);
+	if ((GetKeyState(VK_LEFT)<0)&&(GetKeyState(VK_RCONTROL)<0)&&(q->og>RUNOG)) move(q,0,-3,1);
+	if ((GetKeyState(VK_DOWN)<0)&&(GetKeyState(VK_RCONTROL)<0)&&(q->og>RUNOG)) move(q,3,0,1);
+	if ((GetKeyState(VK_RIGHT)<0)&&(GetKeyState(VK_RCONTROL)<0)&&(q->og>RUNOG)) move(q,0,3,1);
  
 	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_LEFT)<0)) move(q,-sqrt(2)/2,-sqrt(2)/2,0);
 	if ((GetKeyState(VK_UP)<0)&&(GetKeyState(VK_RIGHT)<0)) move(q,-sqrt(2)/2,sqrt(2)/2,0);
@@ -1341,22 +1340,21 @@ void control2(player *q,int *exitflag)
 	{
 		pick(q);
 	}
-	if (keyp("p")) attack(q,-1,0);
-	if (keyp("l")) attack(q,0,-1);
+	if (keyp("P")) attack(q,-1,0);
+	if (keyp("L")) attack(q,0,-1);
 	if (keyp(";")) attack(q,1,0);
 	if (keyp("'")) attack(q,0,1);
 	#ifndef WIN
-	if (z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
-	if (z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (keyp("E")) pause(exitflag);
+	if ((level==0)&&z&&keyp("1")) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if ((level==0)&&z&&keyp("2")) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (keyp("E")) pausee(exitflag);
 	#endif
     #ifdef WIN
-	if (z&&keyp("c")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
-	if (z&&keyp("c")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
-    if (GetKeyState(VK_ESCAPE)<0) pause(exitflag);
+	if ((level==0)&&z&&keyp("C")&&(GetKeyState(VK_UP)<0)) spawn(2,rand()%60+21,rand()%60+21),z=0;
+	if ((level==0)&&z&&keyp("C")&&(GetKeyState(VK_LEFT)<0)) spawn(3,rand()%60+21,rand()%60+21),z=0;
+    if (GetKeyState(VK_ESCAPE)<0) pausee(exitflag);
     #endif
 }
-#endif
 
 void gamescreen(int playern,int level)
 {
@@ -1421,8 +1419,14 @@ void gamescreen(int playern,int level)
 		}
 		getinput();
 		
-		control1(&p[1],&zz);
-		if (playern==2) control2(&p[2],&zz);
+		control1(&p[1],&zz,level);
+		if (playern==2)
+		{
+			if (BIGKEYBOARD)
+				bcontrol2(&p[2],&zz,level);
+			else
+				control2(&p[2],&zz,level);
+		}
 		#ifdef DEBUG
 		else controldbg(); 
 		#endif

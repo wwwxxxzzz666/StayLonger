@@ -64,10 +64,25 @@ void stbinit()  //物块
 	strcpy(stb[24].c,"ぁ");stb[24].fc=15;stb[24].csh=0;  //手雷
 	strcpy(stb[25].c,"ロ");stb[25].fc=12;stb[25].csh=0;  //箱子
 	strcpy(stb[41].c,"ヽ");stb[41].fc=15;stb[41].csh=1;  //子弹
-	strcpy(stb[42].c,"▓");stb[42].fc=15;stb[42].csh=1;  //冲击波
-	strcpy(stb[43].c,"█");stb[43].fc=15;stb[43].csh=0;  //墙壁
+	if (!DDC)
+	{
+		strcpy(stb[42].c,"▓");stb[42].fc=15;stb[42].csh=1;  //冲击波
+		strcpy(stb[43].c,"█");stb[43].fc=15;stb[43].csh=0;  //墙壁
+	}
+	else
+	{
+		strcpy(stb[42].c,"▓▓");stb[42].fc=15;stb[42].csh=1;  //冲击波
+		strcpy(stb[43].c,"██");stb[43].fc=15;stb[43].csh=0;  //墙壁
+	}
 	strcpy(stb[44].c,"※");stb[44].fc=11;stb[44].csh=0;  //黑暗水晶
-	strcpy(stb[45].c,"▓");stb[45].fc=15;stb[45].csh=1;  //剑气
+	if (!DDC)
+	{
+		strcpy(stb[45].c,"▓");stb[45].fc=15;stb[45].csh=1;  //剑气
+	}
+	else
+	{
+	strcpy(stb[45].c,"▓▓");stb[45].fc=15;stb[45].csh=1;  //剑气
+	}
 	strcpy(stb[46].c,"★");stb[46].fc=5;stb[46].csh=0;  //神圣水晶
 	strcpy(stb[71].c,"ヶ");stb[71].fc=13; //小枪
 	strcpy(stb[72].c,"ゥ");stb[72].fc=13; //手雷

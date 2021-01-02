@@ -4,14 +4,14 @@ int sgnx(player *p1,player *p2)  //p2相对p1的x方位sgn
 	if ((int)(p1->x)>(int)(p2->x)) return -1;
 	return 1;
 }
- 
+
 int sgny(player *p1,player *p2)  //p2相对p1的y方位sgn
 {
 	if ((int)(p1->y)==(int)(p2->y)) return 0;
 	if ((int)(p1->y)>(int)(p2->y)) return -1;
 	return 1;
 }
- 
+
 int qdisx(player *p1,player *p2)  //切比雪夫x方位距离
 {
 	return abs((int)(p1->x)-(int)(p2->x));

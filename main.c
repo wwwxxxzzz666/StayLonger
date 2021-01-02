@@ -12,10 +12,11 @@
 #ifdef WIN
 #include <windows.h>
 #endif
- 
+
+int DDC=1;  //部分GBK字符是否双重显示
 #include "stdinit.h"
 
-#define BIGKEYBOARD  //是否是大键盘
+int BIGKEYBOARD=1;  //是否是大键盘
 //#define DEBUG //是否显示DEBUG
 
 #define MX 100
@@ -28,7 +29,7 @@
 #define MT 100  //基础移动冷却时间，单位ms
 #define ANT 10  //子弹动态活动运动基础单位时间，单位ms
 #define BNT 300  //冲击波动态活动运动基础单位时间，单位ms
-#define DT 1  //绘制延迟，单位ms
+int DT=2;  //绘制延迟，单位ms
 #define PT 10  //物理计算单位时间，单位ms
 #define OT 1000  //氧气判定单位时间，单位ms
 #define BT 100  //击退延迟时间，单位ms
@@ -148,7 +149,7 @@ void gameend(int level)
 		while (1)
 		{
 			getinput();
-			if (keyp("b")) {clrscr(); return;}
+			if (keyp("B")) {clrscr(); return;}
 			#ifdef WIN
 			if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
 			#endif
@@ -197,7 +198,7 @@ void gameend(int level)
 		while (1)
 		{
 			getinput();
-			if (keyp("b")) {clrscr(); return;}
+			if (keyp("B")) {clrscr(); return;}
 			#ifdef WIN
 			if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
 			#endif
@@ -246,7 +247,7 @@ void gameend(int level)
 		while (1)
 		{
 			getinput();
-			if (keyp("b")) {clrscr(); return;}
+			if (keyp("B")) {clrscr(); return;}
 			#ifdef WIN
 			if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
 			#endif
@@ -295,7 +296,7 @@ void gameend(int level)
 		while (1)
 		{
 			getinput();
-			if (keyp("b")) {clrscr(); return;}
+			if (keyp("B")) {clrscr(); return;}
 			#ifdef WIN
 			if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
 			#endif
@@ -331,7 +332,7 @@ void levelinfo(int level)
 			gotoxy(13,1);
 			print("  按下回车或者E键继续~",14,6);
 			getinput();
-			if (keyp("e")) {clrscr(); return;}
+			if (keyp("E")) {clrscr(); return;}
 			#ifdef WIN
 			if (GetKeyState(VK_RETURN)<0) {clrscr(); return;}
 			#endif
@@ -360,7 +361,7 @@ void levelinfo(int level)
 			gotoxy(13,1);
 			print("  按下回车或者E键继续~",14,6);
 			getinput();
-			if (keyp("e")) {clrscr(); return;}
+			if (keyp("E")) {clrscr(); return;}
 			#ifdef WIN
 			if (GetKeyState(VK_RETURN)<0) {clrscr(); return;}
 			#endif
@@ -391,7 +392,7 @@ void levelinfo(int level)
 			gotoxy(13,1);
 			print("  按下回车或者E键继续~",14,6);
 			getinput();
-			if (keyp("e")) {clrscr(); return;}
+			if (keyp("E")) {clrscr(); return;}
 			#ifdef WIN
 			if (GetKeyState(VK_RETURN)<0) {clrscr(); return;}
 			#endif
@@ -440,10 +441,10 @@ void levelentry(int level)
 		gotoxy(11,1);
 		print(sel[z+1],12,6);
 		getinput();
-		if (zz&&keyp("w")&&(z>1)) zz=0,z--;
-		if (zz&&keyp("s")&&(z<3)) zz=0,z++;
-		if (keyp("b")) {wait(200); clrscr(); return;}
-		if (keyp("e"))
+		if (zz&&keyp("W")&&(z>1)) zz=0,z--;
+		if (zz&&keyp("S")&&(z<3)) zz=0,z++;
+		if (keyp("B")) {wait(200); clrscr(); return;}
+		if (keyp("E"))
 		{
 			if (z==1)
 			{
@@ -540,10 +541,10 @@ void challenge()
 		else
 			print(sel[z+1],7,6);
 		getinput();
-		if (zz&&keyp("w")&&(z>1)) zz=0,z--;
-		if (zz&&keyp("s")&&(z<4)) zz=0,z++;
-		if (keyp("b")) {wait(200); clrscr(); return;}
-		if (keyp("e")&&((z>3)||(z<=pre)))
+		if (zz&&keyp("W")&&(z>1)) zz=0,z--;
+		if (zz&&keyp("S")&&(z<4)) zz=0,z++;
+		if (keyp("B")) {wait(200); clrscr(); return;}
+		if (keyp("E")&&((z>3)||(z<=pre)))
 		{
 			if (z!=4)
 			{
@@ -606,7 +607,7 @@ void about()
 		gotoxy(15,1);
 		print("      敬上我们诚挚的谢意",9,6);
 		getinput();
-		if (keyp("b")) {clrscr(); return;}
+		if (keyp("B")) {clrscr(); return;}
 		#ifdef WIN
 	    if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
 		#endif
@@ -630,19 +631,21 @@ void help()
 		gotoxy(6,1);
 		print("玩家1：",14,6);
 		gotoxy(7,1);
-		print("移动:WASD 疾跑:LSHIFT 捡起&丢下:R 攻击:TFGH",14,6);
+		print("移动:WASD 疾跑:X 捡起&丢下:R 攻击:TFGH",14,6);
 		gotoxy(8,1);
-		#ifdef BIGKEYBOARD
-		print("玩家2：(其中数字为小键盘)",14,6);
-		gotoxy(9,1);
-		print("移动：↑←↓→ 疾跑：RSHIFT 捡起&丢下:7 攻击:8456",14,6);
+		if (BIGKEYBOARD)
+		{
+			print("玩家2：(其中数字为小键盘)",14,6);
+			gotoxy(9,1);
+			print("移动：↑←↓→ 疾跑：1 捡起&丢下:7 攻击:8456",14,6);
+		}
+		else
+		{
+			print("玩家2：",14,6);
+			gotoxy(9,1);
+			print("移动：↑←↓→ 疾跑：RCTRL 捡起&丢下:[ 攻击:pl;'",14,6);
+		}
 		gotoxy(10,1);
-		#else
-		print("玩家2：",14,6);
-		gotoxy(9,1);
-		print("移动：↑←↓→ 疾跑：RSHIFT 捡起&丢下:[ 攻击:pl;'",14,6);
-		gotoxy(10,1);
-		#endif
 		print("界面说明：",14,6);
 		gotoxy(11,1);
 		print("界面头行显示人物血量和氧气值",14,6);
@@ -655,7 +658,7 @@ void help()
 		gotoxy(15,1);
 		print("游戏基本规则：活下去！同时尽可能完成相应的任务。",9,6);
 		getinput();
-		if (keyp("b")) {clrscr(); return;}
+		if (keyp("B")) {clrscr(); return;}
 		#ifdef WIN
 	    if (GetKeyState(VK_ESCAPE)<0) {clrscr(); return;}
 		#endif
@@ -697,9 +700,9 @@ void menu()
 		gotoxy(11,1);
 		print(sel[z+1],12,6);
 		getinput();
-		if (zz&&keyp("w")&&(z>1)) zz=0,z--;
-		if (zz&&keyp("s")&&(z<5)) zz=0,z++;
-		if (keyp("e"))
+		if (zz&&keyp("W")&&(z>1)) zz=0,z--;
+		if (zz&&keyp("S")&&(z<5)) zz=0,z++;
+		if (keyp("E"))
 		{
 			if (z==1)
 			{
@@ -766,6 +769,17 @@ void main()
 #ifdef WIN
 	system("cls"); HideCursor(); system("mode con cols=54 lines=16"); SetConsoleTitle("Stay Longer");
 #endif
+	if ((fp=fopen("setttings.ini","r"))!=NULL)
+	{
+		fscanf(fp,"%d\n%d\n%d",&BIGKEYBOARD,&DDC,&DT);
+		fclose(fp);
+	}
+	else
+	{
+		fp=fopen("setttings.ini","w");
+		fprintf(fp,"%d      //是否使用数字键盘\n%d      //部分GBK字符是否双重显示\n%d      //绘制延迟，单位ms",BIGKEYBOARD,DDC,DT);
+		fclose(fp);
+	}
 	printf("\e[?25l");
 	srand((unsigned int)time(NULL));
 	tipsinit();
